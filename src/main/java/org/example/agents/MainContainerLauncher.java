@@ -15,7 +15,7 @@ public class MainContainerLauncher{
         profile.setParameter(Profile.MAIN_HOST, "localhost");
         profile.setParameter(Profile.GUI, "true");
         profile.setParameter(Profile.PLATFORM_ID, "RecipePlatform");
-        profile.setParameter(Profile.LOCAL_PORT, "2099");
+        profile.setParameter(Profile.LOCAL_PORT, "1099");
 
 
         AgentContainer mainContainer = rt.createMainContainer(profile);
