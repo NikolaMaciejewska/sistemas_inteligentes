@@ -1,1 +1,1 @@
-( ap-description  :name "RecipePlatform" :ap-services (set ( ap-service  :name fipa.mts.mtp.http.std :type fipa.mts.mtp.http.std :addresses (sequence http://SYNKDIVE:54068/acc))))
+( ap-description  :name "RecipePlatform" :ap-services (set ( ap-service  :name fipa.mts.mtp.http.std :type fipa.mts.mtp.http.std :addresses (sequence http://SYNKDIVE:7778/acc))))

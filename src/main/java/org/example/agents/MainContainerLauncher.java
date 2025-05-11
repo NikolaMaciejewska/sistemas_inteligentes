@@ -15,7 +15,7 @@ public class MainContainerLauncher{
         profile.setParameter(Profile.MAIN_HOST, "localhost");
         profile.setParameter(Profile.GUI, "true");
         profile.setParameter(Profile.PLATFORM_ID, "RecipePlatform");
-        profile.setParameter(Profile.LOCAL_PORT, "1099");
+        profile.setParameter(Profile.LOCAL_PORT, "2099");
 
 
         AgentContainer mainContainer = rt.createMainContainer(profile);
@@ -27,21 +27,21 @@ public class MainContainerLauncher{
                     null
             );
 
-            AgentController finderAgent = mainContainer.createNewAgent(
-                    "RecipeFinderAgent",
-                    "org.example.agents.RecipeFinderAgent",
+            AgentController dataAgent = mainContainer.createNewAgent(
+                    "AcquisitionAgent",
+                    "org.example.agents.AcquisitionAgent",
                     null
             );
 
-            AgentController prefAgent = mainContainer.createNewAgent(
-                    "PreferenceAgent",
-                    "org.example.agents.PreferenceAgent",
+            AgentController procAgent = mainContainer.createNewAgent(
+                    "ProcessingAgent",
+                    "org.example.agents.ProcessingAgent",
                     null
             );
 
             uiAgent.start();
-            finderAgent.start();
-            prefAgent.start();
+            dataAgent.start();
+            procAgent.start();
 
         } catch (StaleProxyException e) {
             e.printStackTrace();

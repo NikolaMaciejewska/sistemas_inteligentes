@@ -3,28 +3,30 @@ package org.example.models;
 import lombok.Getter;
 import lombok.Setter;
 import lombok.NoArgsConstructor;
+
+import java.io.Serializable;
 import java.util.List;
 
 @Getter
 @Setter
 @NoArgsConstructor
-public class Recipe {
-    private String name;
+public class Recipe implements Serializable {
+    private String title;
     private List<Ingredient> ingredients;
-    private int prepTimeMinutes;
-    private String difficulty; // "easy", "medium", "hard"
+    private int preparationTime; // in minutes
+    private String difficulty; // "Easy", "Medium", "Hard"
     private int calories;
-    private String type; // "sweet", "salty", "spicy", "vegan"
+    private List<String> tags; // e.g., "vegan", "gluten-free"
     private int servings;
 
-    public Recipe(String name, List<Ingredient> ingredients, int prepTimeMinutes,
-                  String difficulty, int calories, String type, int servings) {
-        this.name = name;
+    public Recipe(String title, List<Ingredient> ingredients, int preparationTime,
+                  String difficulty, int calories, List<String> tags, int servings) {
+        this.title = title;
         this.ingredients = ingredients;
-        this.prepTimeMinutes = prepTimeMinutes;
+        this.preparationTime = preparationTime;
         this.difficulty = difficulty;
         this.calories = calories;
-        this.type = type;
+        this.tags = tags;
         this.servings = servings;
     }
 }

@@ -1,0 +1,28 @@
+[
+  {
+    "title": "Vegan Chili",
+    "ingredients": [
+      {"name": "Kidney beans", "quantity": 400, "unit": "g"},
+      {"name": "Tomatoes", "quantity": 300, "unit": "g"},
+      {"name": "Chili powder", "quantity": 2, "unit": "tsp"}
+    ],
+    "preparationTime": 40,
+    "difficulty": "Medium",
+    "calories": 550,
+    "tags": ["vegan", "spicy"],
+    "servings": 4
+  },
+  {
+    "title": "Pancakes",
+    "ingredients": [
+      {"name": "Flour", "quantity": 250, "unit": "g"},
+      {"name": "Egg", "quantity": 2, "unit": "pcs"},
+      {"name": "Milk", "quantity": 300, "unit": "ml"}
+    ],
+    "preparationTime": 20,
+    "difficulty": "Easy",
+    "calories": 300,
+    "tags": ["sweet"],
+    "servings": 2
+  }
+]
