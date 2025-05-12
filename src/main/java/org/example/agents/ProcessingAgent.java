@@ -42,7 +42,7 @@ public class ProcessingAgent extends Agent {
                             response.addReceiver(new AID("UserInterfaceAgent", AID.ISLOCALNAME));
                             response.setContent("Filtered recipes:\n" +
                                     filtered.stream()
-                                            .map(Recipe::getTitle)
+                                            .map(Recipe::getRecipe_name)
                                             .collect(Collectors.joining(", ")));
                             send(response);
                         } else {
