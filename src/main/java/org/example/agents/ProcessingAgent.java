@@ -4,10 +4,11 @@ import jade.core.AID;
 import jade.core.Agent;
 import jade.core.behaviours.CyclicBehaviour;
 import jade.lang.acl.ACLMessage;
-import jade.lang.acl.UnreadableException;
+import com.google.gson.Gson;
+import com.google.gson.reflect.TypeToken;
 import org.example.models.Recipe;
 
-import java.io.Serializable;
+import java.lang.reflect.Type;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -21,36 +22,35 @@ public class ProcessingAgent extends Agent {
             public void action() {
                 ACLMessage msg = receive();
                 if (msg != null) {
+                    if (!"recipes-data".equals(msg.getConversationId())) {
+                        System.out.println("Ignored unrelated message: " + msg.getContent());
+                        return;
+                    }
+
                     try {
-                        Object content = msg.getContentObject();
+                        String json = msg.getContent();
+                        Gson gson = new Gson();
+                        Type listType = new TypeToken<List<Recipe>>() {}.getType();
+                        List<Recipe> recipes = gson.fromJson(json, listType);
 
-                        if (content instanceof List<?>) {
-                            List<?> list = (List<?>) content;
+                        // Filter recipes
+                        List<Recipe> filtered = recipes.stream()
+                                .filter(r -> r.getTags() != null &&
+                                        r.getTags().contains("vegan") &&
+                                        r.getCalories() < 600)
+                                .collect(Collectors.toList());
 
-                            List<Recipe> recipes = list.stream()
-                                    .filter(o -> o instanceof Recipe)
-                                    .map(o -> (Recipe) o)
-                                    .collect(Collectors.toList());
+                        // Send results to UI
+                        ACLMessage response = new ACLMessage(ACLMessage.INFORM);
+                        response.addReceiver(new AID("UIAgent", AID.ISLOCALNAME));
+                        response.setContent("Filtered recipes:\n" +
+                                filtered.stream()
+                                        .map(Recipe::getRecipe_name)
+                                        .collect(Collectors.joining(", ")));
+                        send(response);
 
-                            List<Recipe> filtered = recipes.stream()
-                                    .filter(r -> r.getTags() != null &&
-                                            r.getTags().contains("vegan") &&
-                                            r.getCalories() < 600)
-                                    .collect(Collectors.toList());
-
-                            ACLMessage response = new ACLMessage(ACLMessage.INFORM);
-                            response.addReceiver(new AID("UserInterfaceAgent", AID.ISLOCALNAME));
-                            response.setContent("Filtered recipes:\n" +
-                                    filtered.stream()
-                                            .map(Recipe::getTitle)
-                                            .collect(Collectors.joining(", ")));
-                            send(response);
-                        } else {
-                            System.err.println("Received content is not a List<Recipe>");
-                        }
-
-                    } catch (UnreadableException e) {
-                        System.err.println("Unreadable message content: " + e.getMessage());
+                    } catch (Exception e) {
+                        System.err.println("Failed to parse recipe list: " + e);
                     }
                 } else {
                     block();

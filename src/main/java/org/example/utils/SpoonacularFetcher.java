@@ -49,10 +49,9 @@ public class SpoonacularFetcher {
             JsonObject obj = el.getAsJsonObject();
             Recipe recipe = new Recipe();
 
-            recipe.setTitle(obj.get("title").getAsString());
+            recipe.setRecipe_name(obj.get("title").getAsString());
             recipe.setCalories((int) (Math.random() * 500));
-            recipe.setDifficulty("Medium");
-            recipe.setPreparationTime(obj.get("readyInMinutes").getAsInt());
+            recipe.setPrep_time(obj.get("readyInMinutes").getAsInt());
 
             List<String> tags = new ArrayList<>();
             if (obj.has("diets")) {
@@ -60,7 +59,7 @@ public class SpoonacularFetcher {
                     tags.add(tag.getAsString());
                 }
             }
-            recipe.setTags(tags);
+            recipe.setTags((ArrayList<String>) tags);
 
             recipes.add(recipe);
         }
