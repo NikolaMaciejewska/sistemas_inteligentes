@@ -11,6 +11,7 @@ import java.util.List;
 @Setter
 @NoArgsConstructor
 public class Recipe implements Serializable {
+    private int idRecipe;
     private String title;
     private List<Ingredient> ingredients;
     private int preparationTime; // in minutes
@@ -29,4 +30,6 @@ public class Recipe implements Serializable {
         this.tags = tags;
         this.servings = servings;
     }
+    
+    
 }

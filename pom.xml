@@ -20,7 +20,7 @@
             <artifactId>jade</artifactId>
             <version>4.6.0</version>
             <scope>system</scope>
-            <systemPath>C:/Users/nikol/Downloads/JADE-all-4.6.0/JADE-bin-4.6.0/jade/lib/jade.jar</systemPath>
+            <systemPath>${project.basedir}/src/main/java/org/lib/jade.jar</systemPath>
         </dependency>
         <dependency>
             <groupId>org.projectlombok</groupId>
