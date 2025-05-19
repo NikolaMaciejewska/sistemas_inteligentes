@@ -13,20 +13,13 @@ public class MainContainerLauncher{
 
         Profile profile = new ProfileImpl();
         profile.setParameter(Profile.MAIN_HOST, "localhost");
-        profile.setParameter(Profile.GUI, "true");
         profile.setParameter(Profile.PLATFORM_ID, "RecipePlatform");
         profile.setParameter(Profile.LOCAL_PORT, "2099");
-
+        profile.setParameter(Profile.GUI, "true");
 
         AgentContainer mainContainer = rt.createMainContainer(profile);
 
         try {
-            AgentController uiAgent = mainContainer.createNewAgent(
-                    "UIAgent",
-                    "org.example.agents.UIAgent",
-                    null
-            );
-
             AgentController dataAgent = mainContainer.createNewAgent(
                     "AcquisitionAgent",
                     "org.example.agents.AcquisitionAgent",
@@ -39,7 +32,6 @@ public class MainContainerLauncher{
                     null
             );
 
-            uiAgent.start();
             dataAgent.start();
             procAgent.start();
 

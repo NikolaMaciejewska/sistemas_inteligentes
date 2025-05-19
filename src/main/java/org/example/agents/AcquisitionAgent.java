@@ -12,9 +12,15 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 public class AcquisitionAgent extends Agent {
+	
+	MainGUI gui;  
+	
     @Override
     protected void setup() {
         System.out.println(getLocalName() + ": started");
+        gui = new MainGUI(this.getLocalName(), this);
+		gui.run();
+
 
         addBehaviour(new CyclicBehaviour() {
             @Override
