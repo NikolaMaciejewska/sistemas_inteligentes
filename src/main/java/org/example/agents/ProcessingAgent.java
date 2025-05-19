@@ -4,13 +4,9 @@ import jade.core.AID;
 import jade.core.Agent;
 import jade.core.behaviours.CyclicBehaviour;
 import jade.lang.acl.ACLMessage;
-import com.google.gson.Gson;
-import com.google.gson.reflect.TypeToken;
-import org.example.models.Recipe;
 
-import java.lang.reflect.Type;
-import java.util.List;
-import java.util.stream.Collectors;
+import java.io.BufferedReader;
+import java.io.InputStreamReader;
 
 public class ProcessingAgent extends Agent {
     @Override
@@ -22,36 +18,36 @@ public class ProcessingAgent extends Agent {
             public void action() {
                 ACLMessage msg = receive();
                 if (msg != null) {
-                    if (!"recipes-data".equals(msg.getConversationId())) {
-                        System.out.println("Ignored unrelated message: " + msg.getContent());
+                    System.out.println(getLocalName() + ": Received message");
+
+                    // Espera un JSON como contenido
+                    String parametrosJson = msg.getContent();
+                    if (parametrosJson == null || parametrosJson.isEmpty()) {
+                        System.out.println("No JSON content received");
                         return;
                     }
 
                     try {
-                        String json = msg.getContent();
-                        Gson gson = new Gson();
-                        Type listType = new TypeToken<List<Recipe>>() {}.getType();
-                        List<Recipe> recipes = gson.fromJson(json, listType);
+                        // Ejecutar script Python con el JSON como argumento
+                        ProcessBuilder pb = new ProcessBuilder("python", "buscar_recetas.py", parametrosJson);
+                        pb.redirectErrorStream(true); // Combina stderr y stdout
 
-                        // Filter recipes
-                        List<Recipe> filtered = recipes.stream()
-                                .filter(r -> r.getTags() != null &&
-                                        r.getTags().contains("vegan") &&
-                                        r.getCalories() < 600)
-                                .collect(Collectors.toList());
+                        Process process = pb.start();
+                        BufferedReader reader = new BufferedReader(new InputStreamReader(process.getInputStream()));
 
-                        // Send results to UI
-                        ACLMessage response = new ACLMessage(ACLMessage.INFORM);
-                        response.addReceiver(new AID("UIAgent", AID.ISLOCALNAME));
-                        response.setContent("Filtered recipes:\n" +
-                                filtered.stream()
-                                        .map(Recipe::getRecipe_name)
-                                        .collect(Collectors.joining(", ")));
-                        send(response);
+                        String line;
+                        System.out.println("Respuesta del script Python:");
+                        while ((line = reader.readLine()) != null) {
+                            System.out.println(line);
+                        }
+
+                        process.waitFor();
 
                     } catch (Exception e) {
-                        System.err.println("Failed to parse recipe list: " + e);
+                        System.err.println("Error al ejecutar el script Python: " + e.getMessage());
+                        e.printStackTrace();
                     }
+
                 } else {
                     block();
                 }
@@ -59,3 +55,4 @@ public class ProcessingAgent extends Agent {
         });
     }
 }
+
