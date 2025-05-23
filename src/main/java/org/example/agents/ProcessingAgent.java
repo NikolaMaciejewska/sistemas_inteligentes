@@ -1,12 +1,10 @@
 package org.example.agents;
 
-import jade.core.AID;
 import jade.core.Agent;
 import jade.core.behaviours.CyclicBehaviour;
 import jade.lang.acl.ACLMessage;
 
-import java.io.BufferedReader;
-import java.io.InputStreamReader;
+import java.io.*;
 
 public class ProcessingAgent extends Agent {
     @Override
@@ -20,7 +18,6 @@ public class ProcessingAgent extends Agent {
                 if (msg != null) {
                     System.out.println(getLocalName() + ": Received message");
 
-                    // Espera un JSON como contenido
                     String parametrosJson = msg.getContent();
                     if (parametrosJson == null || parametrosJson.isEmpty()) {
                         System.out.println("No JSON content received");
@@ -28,13 +25,20 @@ public class ProcessingAgent extends Agent {
                     }
 
                     try {
-                        // Ejecutar script Python con el JSON como argumento
-                        ProcessBuilder pb = new ProcessBuilder("python", "buscar_recetas.py", parametrosJson);
-                        pb.redirectErrorStream(true); // Combina stderr y stdout
+                        // Crear el proceso para ejecutar el script
+                        ProcessBuilder pb = new ProcessBuilder("python", "buscar_recetas.py");
+                        pb.redirectErrorStream(true);
 
                         Process process = pb.start();
-                        BufferedReader reader = new BufferedReader(new InputStreamReader(process.getInputStream()));
 
+                        // Enviar el JSON al stdin del script Python
+                        try (BufferedWriter writer = new BufferedWriter(new OutputStreamWriter(process.getOutputStream()))) {
+                            writer.write(parametrosJson);
+                            writer.flush();
+                        }
+
+                        // Leer la salida del script
+                        BufferedReader reader = new BufferedReader(new InputStreamReader(process.getInputStream()));
                         String line;
                         System.out.println("Respuesta del script Python:");
                         while ((line = reader.readLine()) != null) {
@@ -55,4 +59,3 @@ public class ProcessingAgent extends Agent {
         });
     }
 }
-
