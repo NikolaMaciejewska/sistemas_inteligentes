@@ -14,7 +14,10 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 public class AcquisitionAgent extends Agent {
-	
+    //TODO
+	List<String> knownIngredients = List.of("apple cider vinegar", "onion", "garlic", "baking soda", "olive oil", "tomato", "carrot");
+    int levenshteinDistance = 2;
+
 	MainGUI gui;
     public String ingredientsText;
     public File uploadedImage;
@@ -25,8 +28,6 @@ public class AcquisitionAgent extends Agent {
     public boolean vegan;
     public boolean vegetarian;
 
-    //TODO
-    //to be extracted from ingredientsText or uploadedImage????
     private List <String> ingredients;
     private List <String> allergic_information;
 
@@ -44,7 +45,13 @@ public class AcquisitionAgent extends Agent {
             public void action() {
                 block();  // Wait for doWake() from GUI
                 System.out.println(getLocalName() + ": Woken up by UI. Processing user input...");
+
                 try {
+
+                    //extract ingredients from text
+                    IngredientExtractor extractor = new IngredientExtractor(knownIngredients, levenshteinDistance);
+                    ingredients = extractor.extractAndMatch(ingredientsText);
+
                     // fill object
                     UserRecipePreferences prefs = new UserRecipePreferences();
                     prefs.ingredients = ingredients;
