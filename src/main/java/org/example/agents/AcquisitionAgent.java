@@ -1,4 +1,5 @@
 package org.example.agents;
+import com.fasterxml.jackson.databind.ObjectMapper;
 
 import jade.core.AID;
 import jade.core.Agent;
@@ -44,8 +45,32 @@ public class AcquisitionAgent extends Agent {
                 block();  // Wait for doWake() from GUI
                 System.out.println(getLocalName() + ": Woken up by UI. Processing user input...");
                 try {
-                    // Send to ProcessingAgent
-                    //TODO
+                    // fill object
+                    UserRecipePreferences prefs = new UserRecipePreferences();
+                    prefs.ingredients = ingredients;
+                    prefs.allergic_information = allergic_information;
+                    prefs.number_of_recipes = amount;
+                    prefs.max_calories = maxCalories;
+                    prefs.min_rating = minRating;
+                    prefs.max_total_time = maxTotalTime;
+                    prefs.vegan = vegan;
+                    prefs.vegetarian = vegetarian;
+
+                    System.out.println("Sending user preferences to ProcessingAgent...");
+
+                    // make a json
+                    ObjectMapper mapper = new ObjectMapper();
+                    String json = mapper.writeValueAsString(prefs);
+                    System.out.println("Generated JSON:\n" + json);
+
+                    // create message
+                    ACLMessage msg = new ACLMessage(ACLMessage.REQUEST);
+                    msg.addReceiver(new AID("ProcessingAgent", AID.ISLOCALNAME));
+                    msg.setLanguage("JSON");
+                    msg.setContent(json);
+
+                    // send message
+                    send(msg);
 
                 } catch (Exception e) {
                     System.err.println("Error processing user input or sending data: " + e.getMessage());
