@@ -15,7 +15,12 @@ import java.util.List;
 
 public class AcquisitionAgent extends Agent {
 
-    MainGUI gui;
+    //TODO
+	List<String> knownIngredients = List.of("apple cider vinegar", "onion", "garlic", "baking soda", "olive oil", "tomato", "carrot");
+    int levenshteinDistance = 2;
+
+	MainGUI gui;
+
     public String ingredientsText;
     public File uploadedImage;
     public int amount;
@@ -25,8 +30,9 @@ public class AcquisitionAgent extends Agent {
     public boolean vegan;
     public boolean vegetarian;
 
-    private List<String> ingredients;
-    private List<String> allergic_information;
+
+    private List <String> ingredients;
+    public List<String> selectedAllergens;
 
     @Override
     protected void setup() {
@@ -44,10 +50,17 @@ public class AcquisitionAgent extends Agent {
                 System.out.println(getLocalName() + ": Woken up by UI. Processing user input...");
 
                 try {
+
                     // Crear objeto con preferencias del usuario
+
+                    //extract ingredients from text
+                    IngredientExtractor extractor = new IngredientExtractor(knownIngredients, levenshteinDistance);
+                    ingredients = extractor.extractAndMatch(ingredientsText);
+
+                    // fill object
                     UserRecipePreferences prefs = new UserRecipePreferences();
                     prefs.ingredients = ingredients;
-                    prefs.allergic_information = allergic_information;
+                    prefs.selectedAllergens = selectedAllergens;
                     prefs.number_of_recipes = amount;
                     prefs.max_calories = maxCalories;
                     prefs.min_rating = minRating;

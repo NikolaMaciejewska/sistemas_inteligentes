@@ -21,7 +21,14 @@ public class UI extends JFrame {
     public JButton sendButton;
     private File uploadedImageFile;
 
-	/**
+    private JList<CheckableItem> allergenList;
+
+    private static final String[] COMMON_ALLERGENS = {
+            "Almonds", "Dairy", "Eggs", "Fish", "Nuts", "Oats", "Peanuts", "Shellfish", "Soybeans", "Wheat"
+    };
+
+
+    /**
 	 * Launch the application.
 	 */
 	public static void main(String[] args) {
@@ -47,7 +54,7 @@ public class UI extends JFrame {
         this.agent = a;
 		setTitle("Recipe Finder");
 		setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-		setBounds(100, 100, 450, 550);
+		setBounds(100, 100, 450, 650);
 		contentPane = new JPanel();
 		contentPane.setBackground(new Color(95, 158, 160));
 		contentPane.setBorder(new EmptyBorder(5, 5, 5, 5));
@@ -107,7 +114,7 @@ public class UI extends JFrame {
 		setContentPane(contentPane);
 		sendButton = new JButton("Search Recipes");
 		sendButton.setFont(new Font("Comic Sans MS", Font.PLAIN, 15));
-		sendButton.setBounds(45, 450, 360, 45);
+		sendButton.setBounds(45, 550, 360, 45);
 		contentPane.add(sendButton);
 
 
@@ -133,18 +140,52 @@ public class UI extends JFrame {
         uploadButton.setBounds(45, 260, 150, 95);
         contentPane.add(uploadButton);
 
+        JLabel allergensLabel = new JLabel("Avoid allergens:");
+        allergensLabel.setFont(new Font("Comic Sans MS", Font.PLAIN, 15));
+        allergensLabel.setBounds(45, 360, 360, 25);
+        contentPane.add(allergensLabel);
+
+
+        // Allergen checkbox list
+        CheckableItem[] items = new CheckableItem[COMMON_ALLERGENS.length];
+        for (int i = 0; i < COMMON_ALLERGENS.length; i++) {
+            items[i] = new CheckableItem(COMMON_ALLERGENS[i]);
+        }
+
+        allergenList = new JList<>(items);
+        allergenList.setCellRenderer(new CheckListRenderer());
+        allergenList.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
+        allergenList.addMouseListener(new java.awt.event.MouseAdapter() {
+            public void mouseClicked(java.awt.event.MouseEvent e) {
+                int index = allergenList.locationToIndex(e.getPoint());
+                CheckableItem item = allergenList.getModel().getElementAt(index);
+                item.setSelected(!item.isSelected());
+                allergenList.repaint();
+            }
+        });
+
+        JScrollPane allergenScroll = new JScrollPane(allergenList);
+        allergenScroll.setBounds(45, 390, 360, 60);
+        contentPane.add(allergenScroll);
+
+
+        JLabel dietLabel = new JLabel("Diet:");
+        dietLabel.setFont(new Font("Comic Sans MS", Font.PLAIN, 15));
+        dietLabel.setBounds(45, 465, 360, 25);
+        contentPane.add(dietLabel);
+
         // Vegan checkbox
         JCheckBox veganCheckBox = new JCheckBox("Vegan");
         veganCheckBox.setFont(new Font("Comic Sans MS", Font.PLAIN, 14));
         veganCheckBox.setBackground(new Color(95, 158, 160));
-        veganCheckBox.setBounds(45, 410, 100, 25);
+        veganCheckBox.setBounds(45, 490, 100, 25);
         contentPane.add(veganCheckBox);
 
         // Vegetarian checkbox
         JCheckBox vegetarianCheckBox = new JCheckBox("Vegetarian");
         vegetarianCheckBox.setFont(new Font("Comic Sans MS", Font.PLAIN, 14));
         vegetarianCheckBox.setBackground(new Color(95, 158, 160));
-        vegetarianCheckBox.setBounds(45, 370, 120, 25);
+        vegetarianCheckBox.setBounds(225, 490, 120, 25);
         contentPane.add(vegetarianCheckBox);
 
         // File chooser for upload button
@@ -174,6 +215,18 @@ public class UI extends JFrame {
             a.maxCalories = Integer.parseInt(maxCalories);
             a.minRating = Double.parseDouble(minRating);
             a.maxTotalTime = Integer.parseInt(maxTotalTime);
+
+            // Extract selected allergens
+            java.util.List<String> selectedAllergens = new java.util.ArrayList<>();
+            ListModel<CheckableItem> model = allergenList.getModel();
+            for (int i = 0; i < model.getSize(); i++) {
+                CheckableItem item = model.getElementAt(i);
+                if (item.isSelected()) {
+                    selectedAllergens.add(item.toString());
+                }
+            }
+            a.selectedAllergens = selectedAllergens;
+
             a.vegan = isVegan;
             a.vegetarian = isVegetarian;
 
@@ -181,5 +234,42 @@ public class UI extends JFrame {
             a.doWake();
         });
 	}
+
+    // Helper class to store checkbox state
+    static class CheckableItem {
+        private String label;
+        private boolean isSelected = false;
+
+        public CheckableItem(String label) {
+            this.label = label;
+        }
+
+        public boolean isSelected() {
+            return isSelected;
+        }
+
+        public void setSelected(boolean selected) {
+            isSelected = selected;
+        }
+
+        public String toString() {
+            return label;
+        }
+    }
+
+    // Renderer for checkbox list
+    static class CheckListRenderer extends JCheckBox implements ListCellRenderer<CheckableItem> {
+        public Component getListCellRendererComponent(JList<? extends CheckableItem> list, CheckableItem value,
+                                                      int index, boolean isSelected, boolean cellHasFocus) {
+            setEnabled(list.isEnabled());
+            setSelected(value.isSelected());
+            setFont(list.getFont());
+            setBackground(list.getBackground());
+            setForeground(list.getForeground());
+            setText(value.toString());
+            return this;
+        }
+    }
+
 
 }
