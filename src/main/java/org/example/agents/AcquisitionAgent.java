@@ -27,7 +27,7 @@ public class AcquisitionAgent extends Agent {
     public boolean vegetarian;
 
     private List<String> ingredients;
-    private List<String> allergic_information;
+    public List<String> selectedAllergens;
 
     @Override
     protected void setup() {
@@ -51,7 +51,7 @@ public class AcquisitionAgent extends Agent {
                         try {
                             UserRecipePreferences prefs = new UserRecipePreferences();
                             prefs.ingredients = ingredients;
-                            prefs.allergic_information = allergic_information;
+                            prefs.selectedAllergens = selectedAllergens;
                             prefs.number_of_recipes = amount;
                             prefs.max_calories = maxCalories;
                             prefs.min_rating = minRating;
