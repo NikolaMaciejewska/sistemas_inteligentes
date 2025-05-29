@@ -3,7 +3,7 @@ import java.util.List;
 
     public class UserRecipePreferences {
         public List<String> ingredients;
-        public List<String> allergic_information;
+        public List<String> selectedAllergens;
         public int number_of_recipes;
         public int max_calories;
         public double min_rating;
