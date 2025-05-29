@@ -5,6 +5,11 @@ import jade.core.behaviours.CyclicBehaviour;
 import jade.lang.acl.ACLMessage;
 import jade.lang.acl.MessageTemplate;
 
+
+import jade.domain.DFService;
+import jade.domain.FIPAAgentManagement.DFAgentDescription;
+import jade.domain.FIPAAgentManagement.ServiceDescription;
+import jade.domain.FIPAException;
 import java.io.*;
 
 public class ProcessingAgent extends Agent {
@@ -12,6 +17,30 @@ public class ProcessingAgent extends Agent {
     protected void setup() {
         System.out.println(getLocalName() + ": started");
 
+        // 🟢 REGISTRO DEL SERVICIO EN EL DF
+        try {
+            // Descripción del agente
+            DFAgentDescription dfd = new DFAgentDescription();
+            dfd.setName(getAID()); // Identificador del agente
+
+            // Descripción del servicio
+            ServiceDescription sd = new ServiceDescription();
+            sd.setName("Clasificacion de recetas"); // Nombre del servicio
+            sd.setType("recipe-classification");     // Tipo de servicio (puede usarse para búsquedas)
+
+            // Se añade el servicio al descriptor del agente
+            dfd.addServices(sd);
+
+            // Registro en el DF
+            DFService.register(this, dfd);
+            System.out.println("Servicio 'Clasificacion de recetas' registrado en DF");
+
+        } catch (FIPAException e) {
+            System.err.println("Error al registrar el servicio en el DF: " + e.getMessage());
+            e.printStackTrace();
+        }
+
+        // 🔁 COMPORTAMIENTO PRINCIPAL
         addBehaviour(new CyclicBehaviour() {
             @Override
             public void action() {
@@ -66,4 +95,18 @@ public class ProcessingAgent extends Agent {
             }
         });
     }
+
+
+    // 🔻 Este método se ejecuta cuando se elimina el agente
+    @Override
+    protected void takeDown() {
+        try {
+            DFService.deregister(this); // Se elimina el registro del agente del DF
+            System.out.println(getLocalName() + ": Servicio desregistrado del DF.");
+        } catch (FIPAException e) {
+            e.printStackTrace();
+        }
+    }
+
+
 }

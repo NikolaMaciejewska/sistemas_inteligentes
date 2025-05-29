@@ -2,6 +2,7 @@ package org.example.agents;
 
 import java.awt.*;
 import java.awt.event.ActionListener;
+import java.io.File;
 
 import javax.swing.*;
 import javax.swing.border.EmptyBorder;
@@ -10,6 +11,7 @@ public class UI extends JFrame {
 
 	private static final long serialVersionUID = 1L;
 	private JPanel contentPane;
+    private AcquisitionAgent agent;
 	
 	public JTextField dietField;
     public JTextField amountField;
@@ -17,8 +19,16 @@ public class UI extends JFrame {
     public JTextField minRatingField;
     public JTextField maxTotalTimeField;
     public JButton sendButton;
+    private File uploadedImageFile;
 
-	/**
+    private JList<CheckableItem> allergenList;
+
+    private static final String[] COMMON_ALLERGENS = {
+            "Almonds", "Dairy", "Eggs", "Fish", "Nuts", "Oats", "Peanuts", "Shellfish", "Soybeans", "Wheat"
+    };
+
+
+    /**
 	 * Launch the application.
 	 */
 	public static void main(String[] args) {
@@ -41,16 +51,14 @@ public class UI extends JFrame {
 	 * Create the frame.
 	 */
 	public UI(AcquisitionAgent a) {
+        this.agent = a;
 		setTitle("Recipe Finder");
 		setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-		setBounds(100, 100, 450, 300);
+		setBounds(100, 100, 450, 650);
 		contentPane = new JPanel();
 		contentPane.setBackground(new Color(95, 158, 160));
 		contentPane.setBorder(new EmptyBorder(5, 5, 5, 5));
 		
-		dietField = new JTextField("vegan");
-		dietField.setFont(new Font("Comic Sans MS", Font.PLAIN, 15));
-		dietField.setBounds(225, 15, 180, 25);
         amountField = new JTextField("5");
         amountField.setFont(new Font("Comic Sans MS", Font.PLAIN, 15));
         amountField.setBounds(225, 55, 180, 25);
@@ -65,13 +73,11 @@ public class UI extends JFrame {
         maxTotalTimeField.setBounds(225, 175, 180, 25);
         contentPane.setLayout(null);
 
-        JLabel label = new JLabel("Dish type:");
-        label.setLabelFor(dietField);
-        label.setBackground(UIManager.getColor("TextArea.selectionBackground"));
-        label.setFont(new Font("Comic Sans MS", Font.PLAIN, 15));
-        label.setBounds(45, 15, 180, 25);
-        contentPane.add(label);
-        contentPane.add(dietField);
+        JLabel headingLabel = new JLabel("Find Your Recipe!");
+        headingLabel.setFont(new Font("Comic Sans MS", Font.BOLD, 20));
+        headingLabel.setHorizontalAlignment(SwingConstants.CENTER);
+        headingLabel.setBounds(100, 10, 250, 30);
+        contentPane.add(headingLabel);
 
         JLabel label_1 = new JLabel("Number of recipes:");
         label_1.setLabelFor(amountField);
@@ -108,12 +114,162 @@ public class UI extends JFrame {
 		setContentPane(contentPane);
 		sendButton = new JButton("Search Recipes");
 		sendButton.setFont(new Font("Comic Sans MS", Font.PLAIN, 15));
-		sendButton.setBounds(100, 215, 250, 45);
+		sendButton.setBounds(45, 550, 360, 45);
 		contentPane.add(sendButton);
-		
-		//sendButton.addActionListener(new ActionListener() {
-			//TODO
-		//});
+
+
+        // Ingredients text area (scrollable)
+        JLabel ingredientsLabel = new JLabel("Ingredients (text):");
+        ingredientsLabel.setFont(new Font("Comic Sans MS", Font.PLAIN, 15));
+        ingredientsLabel.setBounds(45, 215, 180, 25);
+        contentPane.add(ingredientsLabel);
+
+        JTextArea ingredientsArea = new JTextArea(5, 20);
+        ingredientsArea.setFont(new Font("Comic Sans MS", Font.PLAIN, 14));
+        ingredientsArea.setLineWrap(true);
+        ingredientsArea.setWrapStyleWord(true);
+
+        JScrollPane scrollPane = new JScrollPane(ingredientsArea);
+        scrollPane.setBounds(225, 215, 180, 140); // Adjust size/position as needed
+        scrollPane.setVerticalScrollBarPolicy(JScrollPane.VERTICAL_SCROLLBAR_ALWAYS);
+        contentPane.add(scrollPane);
+
+        // Image upload button
+        JButton uploadButton = new JButton("<html><center>Upload<br>ingredient image</center></html>");
+        uploadButton.setFont(new Font("Comic Sans MS", Font.PLAIN, 15));
+        uploadButton.setBounds(45, 260, 150, 95);
+        contentPane.add(uploadButton);
+
+        JLabel allergensLabel = new JLabel("Avoid allergens:");
+        allergensLabel.setFont(new Font("Comic Sans MS", Font.PLAIN, 15));
+        allergensLabel.setBounds(45, 360, 360, 25);
+        contentPane.add(allergensLabel);
+
+
+        // Allergen checkbox list
+        CheckableItem[] items = new CheckableItem[COMMON_ALLERGENS.length];
+        for (int i = 0; i < COMMON_ALLERGENS.length; i++) {
+            items[i] = new CheckableItem(COMMON_ALLERGENS[i]);
+        }
+
+        allergenList = new JList<>(items);
+        allergenList.setCellRenderer(new CheckListRenderer());
+        allergenList.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
+        allergenList.addMouseListener(new java.awt.event.MouseAdapter() {
+            public void mouseClicked(java.awt.event.MouseEvent e) {
+                int index = allergenList.locationToIndex(e.getPoint());
+                CheckableItem item = allergenList.getModel().getElementAt(index);
+                item.setSelected(!item.isSelected());
+                allergenList.repaint();
+            }
+        });
+
+        JScrollPane allergenScroll = new JScrollPane(allergenList);
+        allergenScroll.setBounds(45, 390, 360, 60);
+        contentPane.add(allergenScroll);
+
+
+        JLabel dietLabel = new JLabel("Diet:");
+        dietLabel.setFont(new Font("Comic Sans MS", Font.PLAIN, 15));
+        dietLabel.setBounds(45, 465, 360, 25);
+        contentPane.add(dietLabel);
+
+        // Vegan checkbox
+        JCheckBox veganCheckBox = new JCheckBox("Vegan");
+        veganCheckBox.setFont(new Font("Comic Sans MS", Font.PLAIN, 14));
+        veganCheckBox.setBackground(new Color(95, 158, 160));
+        veganCheckBox.setBounds(45, 490, 100, 25);
+        contentPane.add(veganCheckBox);
+
+        // Vegetarian checkbox
+        JCheckBox vegetarianCheckBox = new JCheckBox("Vegetarian");
+        vegetarianCheckBox.setFont(new Font("Comic Sans MS", Font.PLAIN, 14));
+        vegetarianCheckBox.setBackground(new Color(95, 158, 160));
+        vegetarianCheckBox.setBounds(225, 490, 120, 25);
+        contentPane.add(vegetarianCheckBox);
+
+        // File chooser for upload button
+        uploadButton.addActionListener(e -> {
+            JFileChooser fileChooser = new JFileChooser();
+            int returnValue = fileChooser.showOpenDialog(null);
+            if (returnValue == JFileChooser.APPROVE_OPTION) {
+                uploadedImageFile = fileChooser.getSelectedFile();
+                System.out.println("Selected file: " + uploadedImageFile.getAbsolutePath());
+            }
+        });
+
+        sendButton.addActionListener(e -> {
+            // Collect all input values from the UI
+            String ingredientsText = ingredientsArea.getText();
+            String amount = amountField.getText();
+            String maxCalories = maxCaloriesField.getText();
+            String minRating = minRatingField.getText();
+            String maxTotalTime = maxTotalTimeField.getText();
+            boolean isVegan = veganCheckBox.isSelected();
+            boolean isVegetarian = vegetarianCheckBox.isSelected();
+
+            // Send to agent (assuming these fields exist in the agent)
+            a.ingredientsText = ingredientsText;
+            a.uploadedImage = uploadedImageFile;
+            a.amount = Integer.parseInt(amount);
+            a.maxCalories = Integer.parseInt(maxCalories);
+            a.minRating = Double.parseDouble(minRating);
+            a.maxTotalTime = Integer.parseInt(maxTotalTime);
+
+            // Extract selected allergens
+            java.util.List<String> selectedAllergens = new java.util.ArrayList<>();
+            ListModel<CheckableItem> model = allergenList.getModel();
+            for (int i = 0; i < model.getSize(); i++) {
+                CheckableItem item = model.getElementAt(i);
+                if (item.isSelected()) {
+                    selectedAllergens.add(item.toString());
+                }
+            }
+            a.selectedAllergens = selectedAllergens;
+
+            a.vegan = isVegan;
+            a.vegetarian = isVegetarian;
+
+            // Wake up the agent
+            a.doWake();
+        });
 	}
+
+    // Helper class to store checkbox state
+    static class CheckableItem {
+        private String label;
+        private boolean isSelected = false;
+
+        public CheckableItem(String label) {
+            this.label = label;
+        }
+
+        public boolean isSelected() {
+            return isSelected;
+        }
+
+        public void setSelected(boolean selected) {
+            isSelected = selected;
+        }
+
+        public String toString() {
+            return label;
+        }
+    }
+
+    // Renderer for checkbox list
+    static class CheckListRenderer extends JCheckBox implements ListCellRenderer<CheckableItem> {
+        public Component getListCellRendererComponent(JList<? extends CheckableItem> list, CheckableItem value,
+                                                      int index, boolean isSelected, boolean cellHasFocus) {
+            setEnabled(list.isEnabled());
+            setSelected(value.isSelected());
+            setFont(list.getFont());
+            setBackground(list.getBackground());
+            setForeground(list.getForeground());
+            setText(value.toString());
+            return this;
+        }
+    }
+
 
 }

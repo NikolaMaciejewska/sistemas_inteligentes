@@ -1,0 +1,64 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://example.com/recipe-preferences.schema.json",
+  "title": "User Recipe Preferences",
+  "description": "Schema for capturing user input to recommend recipes",
+  "type": "object",
+  "properties": {
+    "ingredients": {
+      "type": "array",
+      "description": "List of input ingredients",
+      "items": {
+        "type": "string",
+        "minLength": 1
+      },
+      "minItems": 1
+    },
+    "allergic_information": {
+      "type": "array",
+      "description": "Allergic information as list",
+      "items": {
+        "type": "string",
+        "minLength": 1
+      },
+      "minItems": 0
+    },
+    "number_of_recipes": {
+      "type": "integer",
+      "description": "How many recipes to return",
+      "minimum": 1
+    },
+    "max_calories": {
+      "type": "integer",
+      "description": "Maximum allowed calories per recipe",
+      "minimum": 1
+    },
+    "min_rating": {
+      "type": "number",
+      "description": "Minimum user rating of the recipe",
+      "minimum": 0,
+      "maximum": 5
+    },
+    "max_total_time": {
+      "type": "integer",
+      "description": "Maximum time to prepare the recipe (in minutes)",
+      "minimum": 1
+    },
+    "vegan": {
+      "type": "boolean",
+      "description": "Whether only vegan recipes should be included"
+    },
+    "vegetarian": {
+      "type": "boolean",
+      "description": "Whether only vegetarian recipes should be included"
+    }
+  },
+  "required": [
+    "ingredients",
+    "allergic_information",
+    "number_of_recipes",
+    "max_calories",
+    "min_rating",
+    "max_total_time"
+  ]
+}

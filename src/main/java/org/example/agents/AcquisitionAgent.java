@@ -1,71 +1,127 @@
 package org.example.agents;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import jade.core.AID;
 import jade.core.Agent;
 import jade.core.behaviours.CyclicBehaviour;
+import jade.domain.DFService;
+import jade.domain.FIPAAgentManagement.DFAgentDescription;
+import jade.domain.FIPAAgentManagement.ServiceDescription;
 import jade.lang.acl.ACLMessage;
-import org.example.models.Recipe;
-import org.example.utils.RecipeLoader;
-import org.example.utils.SpoonacularFetcher;
+import jade.domain.FIPAException;
 
+import java.io.File;
 import java.util.List;
-import java.util.stream.Collectors;
 
 public class AcquisitionAgent extends Agent {
-	
-	MainGUI gui;  
-	
+
+    //TODO
+	List<String> knownIngredients = List.of("apple cider vinegar", "onion", "garlic", "baking soda", "olive oil", "tomato", "carrot");
+    int levenshteinDistance = 2;
+
+	MainGUI gui;
+
+    public String ingredientsText;
+    public File uploadedImage;
+    public int amount;
+    public int maxCalories;
+    public double minRating;
+    public int maxTotalTime;
+    public boolean vegan;
+    public boolean vegetarian;
+
+
+    private List <String> ingredients;
+    public List<String> selectedAllergens;
+
     @Override
     protected void setup() {
         System.out.println(getLocalName() + ": started");
+
+        // Launch GUI
         gui = new MainGUI(this.getLocalName(), this);
-		gui.run();
+        gui.run();
 
-
+        // Behaviour para enviar la petición
         addBehaviour(new CyclicBehaviour() {
             @Override
             public void action() {
-                ACLMessage msg = receive();
-                if (msg != null && "user-query".equals(msg.getConversationId())) {
-                    System.out.println(getLocalName() + ": Received user preferences");
+                block();  // Wait for doWake() from GUI
+                System.out.println(getLocalName() + ": Woken up by UI. Processing user input...");
 
-                    try {
-                        String[] parts = msg.getContent().split(",");
-                        String diet = parts[0];
-                        int number = Integer.parseInt(parts[1]);
-                        int maxCalories = Integer.parseInt(parts[2]);
-                        double minRating = Double.parseDouble(parts[3]);
-                        int maxTime = Integer.parseInt(parts[4]);
+                try {
 
-                        List<Recipe> recipes = RecipeLoader.loadRecipes();
+                    // Crear objeto con preferencias del usuario
 
-                        if (recipes == null || recipes.isEmpty()) {
-                            System.out.println(getLocalName() + ": No local recipes found, calling Spoonacular API...");
-                            recipes = SpoonacularFetcher.fetchRecipesFromAPI(diet, number);
-                        }
+                    //extract ingredients from text
+                    IngredientExtractor extractor = new IngredientExtractor(knownIngredients, levenshteinDistance);
+                    ingredients = extractor.extractAndMatch(ingredientsText);
 
-                        List<Recipe> filtered = recipes.stream()
-                                .filter(r ->
-                                        (r.getTags() != null && r.getTags().contains(diet)) &&
-                                                r.getCalories() <= maxCalories &&
-                                                r.getRating() >= minRating &&
-                                                r.getTotal_time() <= maxTime
-                                )
-                                .limit(number)
-                                .collect(Collectors.toList());
+                    // fill object
+                    UserRecipePreferences prefs = new UserRecipePreferences();
+                    prefs.ingredients = ingredients;
+                    prefs.selectedAllergens = selectedAllergens;
+                    prefs.number_of_recipes = amount;
+                    prefs.max_calories = maxCalories;
+                    prefs.min_rating = minRating;
+                    prefs.max_total_time = maxTotalTime;
+                    prefs.vegan = vegan;
+                    prefs.vegetarian = vegetarian;
 
-                        // 3. Forward to ProcessingAgent
-                        ACLMessage toProc = new ACLMessage(ACLMessage.INFORM);
-                        toProc.addReceiver(new AID("ProcessingAgent", AID.ISLOCALNAME));
-                        toProc.setContentObject((java.io.Serializable) filtered);
-                        send(toProc);
+                    // Convertir a JSON
+                    ObjectMapper mapper = new ObjectMapper();
+                    String json = mapper.writeValueAsString(prefs);
+                    System.out.println("Generated JSON:\n" + json);
 
-                        System.out.println(getLocalName() + ": Sent " + filtered.size() + " filtered recipes to ProcessingAgent");
+                    // Buscar servicio en el DF
+                    DFAgentDescription template = new DFAgentDescription();
+                    ServiceDescription sd = new ServiceDescription();
+                    sd.setType("recipe-classification");  // ¡Debe coincidir con el tipo registrado!
+                    template.addServices(sd);
 
-                    } catch (Exception e) {
-                        System.err.println("Error processing user input or sending data: " + e.getMessage());
-                        e.printStackTrace();
+                    DFAgentDescription[] result = DFService.search(myAgent, template);
+
+                    if (result.length > 0) {
+                        AID recipient = result[0].getName();  // Primer agente encontrado
+                        System.out.println("Found agent offering service: " + recipient.getLocalName());
+
+                        // Crear y enviar mensaje
+                        ACLMessage msg = new ACLMessage(ACLMessage.REQUEST);
+                        msg.addReceiver(recipient);
+                        msg.setLanguage("JSON");
+                        msg.setContent(json);
+
+                        send(msg);
+                        System.out.println("Message sent to " + recipient.getLocalName());
+
+                    } else {
+                        System.err.println("No agent found offering 'Clasificacion de recetas'");
                     }
+
+                } catch (FIPAException fe) {
+                    System.err.println("Error searching DF: " + fe.getMessage());
+                    fe.printStackTrace();
+                } catch (Exception e) {
+                    System.err.println("Error processing user input or sending data: " + e.getMessage());
+                    e.printStackTrace();
+                }
+            }
+        });
+
+        // Nuevo comportamiento para recibir respuestas
+        addBehaviour(new CyclicBehaviour() {
+            @Override
+            public void action() {
+                ACLMessage reply = receive();
+
+                if (reply != null && reply.getPerformative() == ACLMessage.INFORM) {
+                    String content = reply.getContent();
+                    System.out.println(getLocalName() + ": Received response:");
+                    System.out.println(content);
+
+                    // Aquí podrías actualizar tu GUI si quieres, por ejemplo:
+                    // gui.showResults(content);
+
                 } else {
                     block();
                 }
@@ -73,3 +129,5 @@ public class AcquisitionAgent extends Agent {
         });
     }
 }
+ 
+	
