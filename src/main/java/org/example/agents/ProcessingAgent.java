@@ -3,12 +3,13 @@ package org.example.agents;
 import jade.core.Agent;
 import jade.core.behaviours.CyclicBehaviour;
 import jade.lang.acl.ACLMessage;
+import jade.lang.acl.MessageTemplate;
+
 
 import jade.domain.DFService;
 import jade.domain.FIPAAgentManagement.DFAgentDescription;
 import jade.domain.FIPAAgentManagement.ServiceDescription;
 import jade.domain.FIPAException;
-
 import java.io.*;
 
 public class ProcessingAgent extends Agent {
@@ -95,6 +96,7 @@ public class ProcessingAgent extends Agent {
         });
     }
 
+
     // 🔻 Este método se ejecuta cuando se elimina el agente
     @Override
     protected void takeDown() {
@@ -105,4 +107,6 @@ public class ProcessingAgent extends Agent {
             e.printStackTrace();
         }
     }
+
+
 }
