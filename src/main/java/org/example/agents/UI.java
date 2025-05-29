@@ -199,40 +199,47 @@ public class UI extends JFrame {
         });
 
         sendButton.addActionListener(e -> {
-            // Collect all input values from the UI
-            String ingredientsText = ingredientsArea.getText();
-            String amount = amountField.getText();
-            String maxCalories = maxCaloriesField.getText();
-            String minRating = minRatingField.getText();
-            String maxTotalTime = maxTotalTimeField.getText();
-            boolean isVegan = veganCheckBox.isSelected();
-            boolean isVegetarian = vegetarianCheckBox.isSelected();
+            try {
+            // Obtener datos del formulario
+                String ingredientsText = ingredientsArea.getText();
+                int amount = Integer.parseInt(amountField.getText());
+                int maxCalories = Integer.parseInt(maxCaloriesField.getText());
+                double minRating = Double.parseDouble(minRatingField.getText());
+                int maxTotalTime = Integer.parseInt(maxTotalTimeField.getText());
+                boolean isVegan = veganCheckBox.isSelected();
+                boolean isVegetarian = vegetarianCheckBox.isSelected();
 
-            // Send to agent (assuming these fields exist in the agent)
-            a.ingredientsText = ingredientsText;
-            a.uploadedImage = uploadedImageFile;
-            a.amount = Integer.parseInt(amount);
-            a.maxCalories = Integer.parseInt(maxCalories);
-            a.minRating = Double.parseDouble(minRating);
-            a.maxTotalTime = Integer.parseInt(maxTotalTime);
-
-            // Extract selected allergens
-            java.util.List<String> selectedAllergens = new java.util.ArrayList<>();
-            ListModel<CheckableItem> model = allergenList.getModel();
-            for (int i = 0; i < model.getSize(); i++) {
-                CheckableItem item = model.getElementAt(i);
-                if (item.isSelected()) {
-                    selectedAllergens.add(item.toString());
+                java.util.List<String> selectedAllergens = new java.util.ArrayList<>();
+                ListModel<CheckableItem> model = allergenList.getModel();
+                for (int i = 0; i < model.getSize(); i++) {
+                    CheckableItem item = model.getElementAt(i);
+                    if (item.isSelected()) {
+                        selectedAllergens.add(item.toString());
+                    }
                 }
+
+        // Asignar valores al agente
+                this.agent.ingredientsText = ingredientsText;
+                this.agent.uploadedImage = uploadedImageFile;
+                this.agent.amount = amount;
+                this.agent.maxCalories = maxCalories;
+                this.agent.minRating = minRating;
+                this.agent.maxTotalTime = maxTotalTime;
+                this.agent.selectedAllergens = selectedAllergens;
+                this.agent.vegan = isVegan;
+                this.agent.vegetarian = isVegetarian;
+
+        // Despertar al agente
+                this.agent.doWake();
+
+            } catch (NumberFormatException ex) {
+                JOptionPane.showMessageDialog(this, "Por favor, ingresa valores válidos en los campos numéricos.", "Error", JOptionPane.ERROR_MESSAGE);
+            } catch (Exception ex) {
+                ex.printStackTrace();
+                JOptionPane.showMessageDialog(this, "Error al enviar datos al agente.", "Error", JOptionPane.ERROR_MESSAGE);
             }
-            a.selectedAllergens = selectedAllergens;
-
-            a.vegan = isVegan;
-            a.vegetarian = isVegetarian;
-
-            // Wake up the agent
-            a.doWake();
         });
+
 	}
 
     // Helper class to store checkbox state

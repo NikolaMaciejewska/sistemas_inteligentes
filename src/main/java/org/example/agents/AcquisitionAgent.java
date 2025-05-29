@@ -4,6 +4,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import jade.core.AID;
 import jade.core.Agent;
 import jade.core.behaviours.CyclicBehaviour;
+import jade.core.behaviours.OneShotBehaviour;
 import jade.domain.DFService;
 import jade.domain.FIPAAgentManagement.DFAgentDescription;
 import jade.domain.FIPAAgentManagement.ServiceDescription;
@@ -15,12 +16,7 @@ import java.util.List;
 
 public class AcquisitionAgent extends Agent {
 
-    //TODO
-	List<String> knownIngredients = List.of("apple cider vinegar", "onion", "garlic", "baking soda", "olive oil", "tomato", "carrot");
-    int levenshteinDistance = 2;
-
-	MainGUI gui;
-
+    MainGUI gui;
     public String ingredientsText;
     public File uploadedImage;
     public int amount;
@@ -30,85 +26,78 @@ public class AcquisitionAgent extends Agent {
     public boolean vegan;
     public boolean vegetarian;
 
-
-    private List <String> ingredients;
-    public List<String> selectedAllergens;
+    private List<String> ingredients;
+    private List<String> allergic_information;
 
     @Override
     protected void setup() {
         System.out.println(getLocalName() + ": started");
 
-        // Launch GUI
+        // Lanzar GUI
         gui = new MainGUI(this.getLocalName(), this);
         gui.run();
 
-        // Behaviour para enviar la petición
+        // Comportamiento que espera doWake() y lanza el envío como OneShot
         addBehaviour(new CyclicBehaviour() {
             @Override
             public void action() {
-                block();  // Wait for doWake() from GUI
-                System.out.println(getLocalName() + ": Woken up by UI. Processing user input...");
+                block(); // Esperar señal desde GUI
 
-                try {
+                addBehaviour(new OneShotBehaviour() {
+                    @Override
+                    public void action() {
+                        System.out.println(getLocalName() + ": Woken up by UI. Processing user input...");
 
-                    // Crear objeto con preferencias del usuario
+                        try {
+                            UserRecipePreferences prefs = new UserRecipePreferences();
+                            prefs.ingredients = ingredients;
+                            prefs.allergic_information = allergic_information;
+                            prefs.number_of_recipes = amount;
+                            prefs.max_calories = maxCalories;
+                            prefs.min_rating = minRating;
+                            prefs.max_total_time = maxTotalTime;
+                            prefs.vegan = vegan;
+                            prefs.vegetarian = vegetarian;
 
-                    //extract ingredients from text
-                    IngredientExtractor extractor = new IngredientExtractor(knownIngredients, levenshteinDistance);
-                    ingredients = extractor.extractAndMatch(ingredientsText);
+                            ObjectMapper mapper = new ObjectMapper();
+                            String json = mapper.writeValueAsString(prefs);
+                            System.out.println("Generated JSON:\n" + json);
 
-                    // fill object
-                    UserRecipePreferences prefs = new UserRecipePreferences();
-                    prefs.ingredients = ingredients;
-                    prefs.selectedAllergens = selectedAllergens;
-                    prefs.number_of_recipes = amount;
-                    prefs.max_calories = maxCalories;
-                    prefs.min_rating = minRating;
-                    prefs.max_total_time = maxTotalTime;
-                    prefs.vegan = vegan;
-                    prefs.vegetarian = vegetarian;
+                            DFAgentDescription template = new DFAgentDescription();
+                            ServiceDescription sd = new ServiceDescription();
+                            sd.setType("recipe-classification");
+                            template.addServices(sd);
 
-                    // Convertir a JSON
-                    ObjectMapper mapper = new ObjectMapper();
-                    String json = mapper.writeValueAsString(prefs);
-                    System.out.println("Generated JSON:\n" + json);
+                            DFAgentDescription[] result = DFService.search(myAgent, template);
 
-                    // Buscar servicio en el DF
-                    DFAgentDescription template = new DFAgentDescription();
-                    ServiceDescription sd = new ServiceDescription();
-                    sd.setType("recipe-classification");  // ¡Debe coincidir con el tipo registrado!
-                    template.addServices(sd);
+                            if (result.length > 0) {
+                                AID recipient = result[0].getName();
 
-                    DFAgentDescription[] result = DFService.search(myAgent, template);
+                                ACLMessage msg = new ACLMessage(ACLMessage.REQUEST);
+                                msg.addReceiver(recipient);
+                                msg.setLanguage("JSON");
+                                msg.setContent(json);
 
-                    if (result.length > 0) {
-                        AID recipient = result[0].getName();  // Primer agente encontrado
-                        System.out.println("Found agent offering service: " + recipient.getLocalName());
+                                send(msg);
+                                System.out.println("Message sent to " + recipient.getLocalName());
 
-                        // Crear y enviar mensaje
-                        ACLMessage msg = new ACLMessage(ACLMessage.REQUEST);
-                        msg.addReceiver(recipient);
-                        msg.setLanguage("JSON");
-                        msg.setContent(json);
+                            } else {
+                                System.err.println("No agent found offering 'Clasificacion de recetas'");
+                            }
 
-                        send(msg);
-                        System.out.println("Message sent to " + recipient.getLocalName());
-
-                    } else {
-                        System.err.println("No agent found offering 'Clasificacion de recetas'");
+                        } catch (FIPAException fe) {
+                            System.err.println("Error searching DF: " + fe.getMessage());
+                            fe.printStackTrace();
+                        } catch (Exception e) {
+                            System.err.println("Error processing user input or sending data: " + e.getMessage());
+                            e.printStackTrace();
+                        }
                     }
-
-                } catch (FIPAException fe) {
-                    System.err.println("Error searching DF: " + fe.getMessage());
-                    fe.printStackTrace();
-                } catch (Exception e) {
-                    System.err.println("Error processing user input or sending data: " + e.getMessage());
-                    e.printStackTrace();
-                }
+                });
             }
         });
 
-        // Nuevo comportamiento para recibir respuestas
+        // Comportamiento para recibir respuestas
         addBehaviour(new CyclicBehaviour() {
             @Override
             public void action() {
@@ -119,8 +108,7 @@ public class AcquisitionAgent extends Agent {
                     System.out.println(getLocalName() + ": Received response:");
                     System.out.println(content);
 
-                    // Aquí podrías actualizar tu GUI si quieres, por ejemplo:
-                    // gui.showResults(content);
+                    // gui.showResults(content); // Descomenta si quieres mostrar resultados en GUI
 
                 } else {
                     block();
@@ -129,5 +117,3 @@ public class AcquisitionAgent extends Agent {
         });
     }
 }
- 
-	
