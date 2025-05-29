@@ -1,12 +1,11 @@
 package org.example.agents;
 
-import jade.core.AID;
 import jade.core.Agent;
 import jade.core.behaviours.CyclicBehaviour;
 import jade.lang.acl.ACLMessage;
+import jade.lang.acl.MessageTemplate;
 
-import java.io.BufferedReader;
-import java.io.InputStreamReader;
+import java.io.*;
 
 public class ProcessingAgent extends Agent {
     @Override
@@ -20,7 +19,6 @@ public class ProcessingAgent extends Agent {
                 if (msg != null) {
                     System.out.println(getLocalName() + ": Received message");
 
-                    // Espera un JSON como contenido
                     String parametrosJson = msg.getContent();
                     if (parametrosJson == null || parametrosJson.isEmpty()) {
                         System.out.println("No JSON content received");
@@ -28,20 +26,34 @@ public class ProcessingAgent extends Agent {
                     }
 
                     try {
-                        // Ejecutar script Python con el JSON como argumento
-                        ProcessBuilder pb = new ProcessBuilder("python", "buscar_recetas.py", parametrosJson);
-                        pb.redirectErrorStream(true); // Combina stderr y stdout
+                        ProcessBuilder pb = new ProcessBuilder("python", "buscar_recetas.py");
+                        pb.redirectErrorStream(true);
 
                         Process process = pb.start();
-                        BufferedReader reader = new BufferedReader(new InputStreamReader(process.getInputStream()));
 
+                        // Enviar JSON al script
+                        try (BufferedWriter writer = new BufferedWriter(new OutputStreamWriter(process.getOutputStream()))) {
+                            writer.write(parametrosJson);
+                            writer.flush();
+                        }
+
+                        // Leer la salida del script Python
+                        BufferedReader reader = new BufferedReader(new InputStreamReader(process.getInputStream()));
+                        StringBuilder outputBuilder = new StringBuilder();
                         String line;
-                        System.out.println("Respuesta del script Python:");
                         while ((line = reader.readLine()) != null) {
-                            System.out.println(line);
+                            outputBuilder.append(line).append("\n");
                         }
 
                         process.waitFor();
+
+                        // Enviar la salida de vuelta al agente emisor
+                        ACLMessage reply = msg.createReply();
+                        reply.setPerformative(ACLMessage.INFORM);
+                        reply.setContent(outputBuilder.toString().trim());
+
+                        send(reply);
+                        System.out.println("Respuesta enviada al agente emisor.");
 
                     } catch (Exception e) {
                         System.err.println("Error al ejecutar el script Python: " + e.getMessage());
@@ -49,10 +61,9 @@ public class ProcessingAgent extends Agent {
                     }
 
                 } else {
-                    block();
+                    block(); // Espera nuevos mensajes
                 }
             }
         });
     }
 }
-
