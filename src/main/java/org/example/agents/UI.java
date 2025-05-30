@@ -38,19 +38,18 @@ public class UI extends JFrame {
     public List<String> splitRecipes(String bigResult) {
         List<String> recipes = new ArrayList<>();
 
-        String[] parts = bigResult.split("(?m)^RECIPE n°");
+        // Zmieniamy punkt podziału z "Receta:" na "RECIPE n°"
+        String[] parts = bigResult.split("(?=RECIPE n°)");
 
         for (String part : parts) {
             String trimmed = part.trim();
             if (!trimmed.isEmpty()) {
-                if (!trimmed.startsWith("RECIPE n°")) {
-                    trimmed = "RECIPE n°" + trimmed;
-                }
                 recipes.add(trimmed);
             }
         }
         return recipes;
     }
+
 
 
     private void showRecipe(int index) {

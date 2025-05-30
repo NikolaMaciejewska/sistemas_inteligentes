@@ -22,7 +22,7 @@ def extraer_calorias(nutrition_str):
         return 9999
 
 
-def buscar_recetas(parametros_json, ruta_csv='dataprocessing/recipes_with_allergens.csv'):
+def buscar_recetas(parametros_json, ruta_csv='recommendation_agent/recipe_db.csv'):
     if isinstance(parametros_json, str):
         parametros = json.loads(parametros_json)
     else:
@@ -47,17 +47,28 @@ def buscar_recetas(parametros_json, ruta_csv='dataprocessing/recipes_with_allerg
             allergens = row['allergens'] if row['allergens'] else ""
 
             try:
-                prep_time = int(''.join(filter(str.isdigit, row['prep_time'])))
+                prep_time = int(''.join(filter(str.isdigit, row['total_time'])))
             except:
                 prep_time = 9999
 
             calories = extraer_calorias(nutrition)
 
-            if (all(ing in ingredientes for ing in ingredientes_requeridos) and not any(alg in allergens for alg in selected_allergens)):
+            is_vegan = parametros.get("vegan", False)
+            is_vegetarian = parametros.get("vegetarian", False)
+
+            row_vegan = row.get("is_vegan", "False").lower() == "true"
+            row_vegetarian = row.get("is_vegetarian", "False").lower() == "true"
+
+            if all(ing in ingredientes for ing in ingredientes_requeridos) \
+                and not any(alg in allergens for alg in selected_allergens) \
+                and (not is_vegan or row_vegan) \
+                and (not is_vegetarian or row_vegetarian):
+
                 if rating >= min_rating and prep_time <= max_prep_time and calories <= max_calories:
+
                     recetas_resultado.append({
                         "recipe_name": row['recipe_name'],
-                        "prep_time": row['prep_time'],
+                        "prep_time": row['total_time'],
                         "ingredients": row['ingredients'],
                         "rating": row['rating'],
                         "calories": calories,
