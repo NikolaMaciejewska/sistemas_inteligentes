@@ -52,7 +52,7 @@ public class UI extends JFrame {
 	 * Create the frame.
 	 */
 	public UI(AcquisitionAgent a) {
-            this.agent = a;
+        this.agent = a;
         setTitle("Recipe Finder");
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         setBounds(100, 100, 900, 740);
@@ -61,19 +61,19 @@ public class UI extends JFrame {
         contentPane.setBorder(new EmptyBorder(5, 5, 5, 5));
         contentPane.setLayout(null);
 
-// Heading - centered
+        // Heading - centered
         JLabel headingLabel = new JLabel("Find Your Recipe!");
         headingLabel.setFont(new Font("Comic Sans MS", Font.BOLD, 22));
         headingLabel.setHorizontalAlignment(SwingConstants.CENTER);
         headingLabel.setBounds(0, 10, 900, 30);
         contentPane.add(headingLabel);
 
-// Left column - positions
+        // Left column - positions
         int labelX = 40;
         int fieldX = 200;
         int fieldWidth = 200;
 
-// Input fields
+        // Input fields
         contentPane.add(label("Number of recipes:", labelX, 55));
         amountField = textField("5", fieldX, 55, fieldWidth);
         contentPane.add(amountField);
@@ -90,7 +90,7 @@ public class UI extends JFrame {
         maxTotalTimeField = textField("30", fieldX, 175, fieldWidth);
         contentPane.add(maxTotalTimeField);
 
-// Ingredients text area (taller)
+        // Ingredients text area (taller)
         contentPane.add(label("Ingredients (text):", labelX, 215));
         JTextArea ingredientsArea = new JTextArea(10, 20);  // Taller (10 rows)
         ingredientsArea.setFont(new Font("Comic Sans MS", Font.PLAIN, 14));
@@ -101,19 +101,19 @@ public class UI extends JFrame {
         ingredientsScroll.setVerticalScrollBarPolicy(JScrollPane.VERTICAL_SCROLLBAR_ALWAYS);
         contentPane.add(ingredientsScroll);
 
-// Upload button (below ingredients area)
+        // Upload button (below ingredients area)
         JButton uploadButton = new JButton("Upload ingredient image");
         uploadButton.setFont(new Font("Comic Sans MS", Font.PLAIN, 15));
         uploadButton.setBounds(labelX, 450, 250, 50);
         contentPane.add(uploadButton);
 
-// Uploaded file label
+        // Uploaded file label
         JLabel imageStatusLabel = new JLabel("No file selected");
         imageStatusLabel.setFont(new Font("Comic Sans MS", Font.PLAIN, 13));
         imageStatusLabel.setBounds(labelX + 260, 465, 200, 20);
         contentPane.add(imageStatusLabel);
 
-// Allergen list
+        // Allergen list
         contentPane.add(label("Avoid allergens:", labelX, 510));
         CheckableItem[] items = new CheckableItem[COMMON_ALLERGENS.length];
         for (int i = 0; i < COMMON_ALLERGENS.length; i++) {
@@ -134,7 +134,7 @@ public class UI extends JFrame {
         allergenScroll.setBounds(labelX, 535, 250, 100);
         contentPane.add(allergenScroll);
 
-// Diet checkboxes to the right of allergen list
+        // Diet checkboxes to the right of allergen list
         JLabel dietLabel = new JLabel("Diet:");
         dietLabel.setFont(new Font("Comic Sans MS", Font.PLAIN, 15));
         dietLabel.setBounds(310, 535, 100, 25);
@@ -152,13 +152,13 @@ public class UI extends JFrame {
         vegetarianCheckBox.setBounds(310, 585, 120, 25);
         contentPane.add(vegetarianCheckBox);
 
-// Search button (bottom aligned with result area)
+        // Search button (bottom aligned with result area)
         sendButton = new JButton("Search Recipes");
         sendButton.setFont(new Font("Comic Sans MS", Font.PLAIN, 16));
         sendButton.setBounds(labelX, 645, 360, 45);
         contentPane.add(sendButton);
 
-// Results field on the right
+        // Results field on the right
         JLabel resultLabel = new JLabel("Recipe Results:");
         resultLabel.setFont(new Font("Comic Sans MS", Font.BOLD, 16));
         resultLabel.setBounds(440, 50, 300, 25);
@@ -176,7 +176,7 @@ public class UI extends JFrame {
 
         setContentPane(contentPane);
 
-// File chooser for upload button
+        // File chooser for upload button
         uploadButton.addActionListener(e -> {
             JFileChooser fileChooser = new JFileChooser();
             int returnValue = fileChooser.showOpenDialog(null);
@@ -187,47 +187,47 @@ public class UI extends JFrame {
             }
         });
 
-            sendButton.addActionListener(e -> {
-                try {
-                // Obtener datos del formulario
-                    String ingredientsText = ingredientsArea.getText();
-                    int amount = Integer.parseInt(amountField.getText());
-                    int maxCalories = Integer.parseInt(maxCaloriesField.getText());
-                    double minRating = Double.parseDouble(minRatingField.getText());
-                    int maxTotalTime = Integer.parseInt(maxTotalTimeField.getText());
-                    boolean isVegan = veganCheckBox.isSelected();
-                    boolean isVegetarian = vegetarianCheckBox.isSelected();
+        sendButton.addActionListener(e -> {
+            try {
+            // Obtener datos del formulario
+                String ingredientsText = ingredientsArea.getText();
+                int amount = Integer.parseInt(amountField.getText());
+                int maxCalories = Integer.parseInt(maxCaloriesField.getText());
+                double minRating = Double.parseDouble(minRatingField.getText());
+                int maxTotalTime = Integer.parseInt(maxTotalTimeField.getText());
+                boolean isVegan = veganCheckBox.isSelected();
+                boolean isVegetarian = vegetarianCheckBox.isSelected();
 
-                    java.util.List<String> selectedAllergens = new java.util.ArrayList<>();
-                    ListModel<CheckableItem> model = allergenList.getModel();
-                    for (int i = 0; i < model.getSize(); i++) {
-                        CheckableItem item = model.getElementAt(i);
-                        if (item.isSelected()) {
-                            selectedAllergens.add(item.toString());
-                        }
+                java.util.List<String> selectedAllergens = new java.util.ArrayList<>();
+                ListModel<CheckableItem> model = allergenList.getModel();
+                for (int i = 0; i < model.getSize(); i++) {
+                    CheckableItem item = model.getElementAt(i);
+                    if (item.isSelected()) {
+                        selectedAllergens.add(item.toString());
                     }
-
-            // Asignar valores al agente
-                    this.agent.ingredientsText = ingredientsText;
-                    this.agent.uploadedImage = uploadedImageFile;
-                    this.agent.amount = amount;
-                    this.agent.maxCalories = maxCalories;
-                    this.agent.minRating = minRating;
-                    this.agent.maxTotalTime = maxTotalTime;
-                    this.agent.selectedAllergens = selectedAllergens;
-                    this.agent.vegan = isVegan;
-                    this.agent.vegetarian = isVegetarian;
-
-            // Despertar al agente
-                    this.agent.doWake();
-
-                } catch (NumberFormatException ex) {
-                    JOptionPane.showMessageDialog(this, "Por favor, ingresa valores válidos en los campos numéricos.", "Error", JOptionPane.ERROR_MESSAGE);
-                } catch (Exception ex) {
-                    ex.printStackTrace();
-                    JOptionPane.showMessageDialog(this, "Error al enviar datos al agente.", "Error", JOptionPane.ERROR_MESSAGE);
                 }
-            });
+
+                // Asignar valores al agente
+                this.agent.ingredientsText = ingredientsText;
+                this.agent.uploadedImage = uploadedImageFile;
+                this.agent.amount = amount;
+                this.agent.maxCalories = maxCalories;
+                this.agent.minRating = minRating;
+                this.agent.maxTotalTime = maxTotalTime;
+                this.agent.selectedAllergens = selectedAllergens;
+                this.agent.vegan = isVegan;
+                this.agent.vegetarian = isVegetarian;
+
+                // Despertar al agente
+                this.agent.doWake();
+
+            } catch (NumberFormatException ex) {
+                JOptionPane.showMessageDialog(this, "Por favor, ingresa valores válidos en los campos numéricos.", "Error", JOptionPane.ERROR_MESSAGE);
+            } catch (Exception ex) {
+                ex.printStackTrace();
+                JOptionPane.showMessageDialog(this, "Error al enviar datos al agente.", "Error", JOptionPane.ERROR_MESSAGE);
+            }
+        });
 	}
 
     public JTextArea getArea() {
