@@ -81,12 +81,14 @@ if __name__ == '__main__':
         print("Prueba con diferentes opciones!")
         sys.exit(0)  # Salida exitosa pero sin resultados
 
+    i=0
     for r in recetas:
-        print(f"\nRECIPE: {r['recipe_name']}")
-        print(f"Ingredients: {r['ingredients']}")
-        print(f"Rating: {r['rating']}")
-        print(f"Prep Time: {r['prep_time']}")
-        print(f"Calories: {r['calories']}")
-        print(f"Allergens: {r['allergens']}")
-        print(f"Directions:\n{r['directions']}")
+        i+=1
+        print(f"\nRECIPE n°{i}: {r['recipe_name']}")
+        print(f"- Ingredients: {r['ingredients']}")
+        print(f"- Rating: {r['rating']}")
+        print(f"- Prep Time: {r['prep_time']}")
+        print(f"- Calories: {r['calories']}")
+        print(f"- Allergens: {r['allergens']}")
+        print(f"- Directions:\n{r['directions']}")
         
