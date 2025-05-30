@@ -23,21 +23,19 @@ import java.util.stream.Stream;
 
 public class AcquisitionAgent extends Agent {
 
-    public static List<String> loadIngredientsFromCsv(String path) throws IOException {
-        try (Stream<String> lines = Files.lines(Paths.get(path))) {
-            return lines.skip(1)
-                    .map(line -> line.split(",")[1])
-                    .map(String::toLowerCase)
-                    .map(s -> s.trim())
-                    .collect(Collectors.toList());
-        }
+    public static List<String> loadIngredientsFromCsv(String csvPath) throws IOException {
+        return Files.readAllLines(Paths.get(csvPath)).stream()
+                .map(String::toLowerCase)
+                .map(String::trim)
+                .filter(s -> !s.isEmpty())
+                .collect(Collectors.toList());
     }
 
     List<String> knownIngredients;
 
     {
         try {
-            knownIngredients = loadIngredientsFromCsv("dataprocessing/all_ingredients.csv");
+            knownIngredients = loadIngredientsFromCsv("dataprocessing/ingredients.csv");
             System.out.println(knownIngredients);
         } catch (IOException e) {
             throw new RuntimeException(e);
