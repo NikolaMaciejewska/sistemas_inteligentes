@@ -56,7 +56,7 @@ public class ProcessingAgent extends Agent {
                     }
 
                     try {
-                        ProcessBuilder pb = new ProcessBuilder("C:/Users/nikol/miniconda3/python.exe", "buscar_recetas.py");
+                        ProcessBuilder pb = new ProcessBuilder("python", "buscar_recetas.py");
                         pb.redirectErrorStream(true);
 
                         Process process = pb.start();
