@@ -32,17 +32,20 @@ public class UI extends JFrame {
     private JList<CheckableItem> allergenList;
 
     private static final String[] COMMON_ALLERGENS = {
-            "Almonds", "Dairy", "Eggs", "Fish", "Nuts", "Oats", "Peanuts", "Shellfish", "Soybeans", "Wheat"
+            "Almonds", "Dairy", "Eggs", "Fish",  "Milk", "Nuts", "Oats", "Peanuts", "Shellfish", "Soybeans", "Wheat"
     };
 
     public List<String> splitRecipes(String bigResult) {
         List<String> recipes = new ArrayList<>();
 
-        String[] parts = bigResult.split("(?=Receta:)");
+        String[] parts = bigResult.split("(?m)^RECIPE n°");
 
         for (String part : parts) {
             String trimmed = part.trim();
             if (!trimmed.isEmpty()) {
+            	if (!trimmed.startsWith("RECIPE n°")) {
+                    trimmed = "RECIPE n°" + trimmed;
+                }
                 recipes.add(trimmed);
             }
         }
@@ -60,6 +63,7 @@ public class UI extends JFrame {
 
         if (index >= 0 && index < recipes.size()) {
             resultArea.setText(recipes.get(index));
+            resultArea.setCaretPosition(0);
             currentRecipeIndex = index;
             pageLabel.setText((index + 1) + "/" + recipes.size());
 
