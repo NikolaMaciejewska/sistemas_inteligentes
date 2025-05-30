@@ -96,17 +96,4 @@ public class ProcessingAgent extends Agent {
         });
     }
 
-
-    // 🔻 Este método se ejecuta cuando se elimina el agente
-    @Override
-    protected void takeDown() {
-        try {
-            DFService.deregister(this); // Se elimina el registro del agente del DF
-            System.out.println(getLocalName() + ": Servicio desregistrado del DF.");
-        } catch (FIPAException e) {
-            e.printStackTrace();
-        }
-    }
-
-
 }

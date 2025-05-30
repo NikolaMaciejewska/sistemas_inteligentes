@@ -1,15 +1,8 @@
 package org.example.models;
 
-import lombok.Getter;
-import lombok.Setter;
-import lombok.NoArgsConstructor;
-
 import java.io.Serializable;
 import java.util.ArrayList;
 
-@Getter
-@Setter
-@NoArgsConstructor
 public class Recipe implements Serializable {
     private int idRecipe;
     private String recipe_name;
@@ -21,9 +14,8 @@ public class Recipe implements Serializable {
     private String directions;
     private double rating; // 1.0 --> 5.0
     private ArrayList<String> tags; // e.g., "vegan", "gluten-free"
-    // puede obtenerse también desde los ingredientes, pero por si acaso
     private int calories;
-
+    
     public Recipe(int idRecipe, String recipe_name, int prep_time, int cook_time, 
             int total_time, int servings, String directions, double rating, int calories) {
         this.idRecipe = idRecipe;
@@ -34,10 +26,13 @@ public class Recipe implements Serializable {
         this.servings = servings;
         this.directions = directions;
         this.rating = rating;
-        this.tags = tags;
         this.calories = calories;
         this.ingredients = new ArrayList<>();
         this.tags = new ArrayList<>();
+    }
+    
+    public Recipe() {
+        
     }
 
     public int getIdRecipe() {

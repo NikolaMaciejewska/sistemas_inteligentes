@@ -1,13 +1,7 @@
 package org.example.models;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.Setter;
 
 import java.io.Serializable;
 
-@Getter
-@Setter
-@NoArgsConstructor
 public class Ingredient implements Serializable {
     private int idIngredient;
     private String name;
@@ -17,6 +11,10 @@ public class Ingredient implements Serializable {
         this.idIngredient = idIngredient;
         this.name = name;
         this.category = category;
+    }
+    
+    public Ingredient(){
+        
     }
     
     public int getIdIngredient() {

@@ -1,5 +1,6 @@
 package org.example.agents;
 
+import org.example.models.UserRecipePreferences;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import jade.core.AID;
 import jade.core.Agent;
@@ -59,14 +60,14 @@ public class AcquisitionAgent extends Agent {
                             ingredients = extractor.extractAndMatch(ingredientsText);
 
                             UserRecipePreferences prefs = new UserRecipePreferences();
-                            prefs.ingredients = ingredients;
-                            prefs.selectedAllergens = selectedAllergens;
-                            prefs.number_of_recipes = amount;
-                            prefs.max_calories = maxCalories;
-                            prefs.min_rating = minRating;
-                            prefs.max_total_time = maxTotalTime;
-                            prefs.vegan = vegan;
-                            prefs.vegetarian = vegetarian;
+                            prefs.setIngredients(ingredients);
+                            prefs.setSelectedAllergens(selectedAllergens);
+                            prefs.setNumber_of_recipes(amount);
+                            prefs.setMax_calories(maxCalories);
+                            prefs.setMin_rating(minRating);
+                            prefs.setMax_total_time(maxTotalTime);
+                            prefs.setVegan(vegan);
+                            prefs.setVegetarian(vegetarian);
 
                             ObjectMapper mapper = new ObjectMapper();
                             String json = mapper.writeValueAsString(prefs);
