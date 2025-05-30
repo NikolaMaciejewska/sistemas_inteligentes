@@ -36,7 +36,7 @@ public class AcquisitionAgent extends Agent {
 
     @Override
     protected void setup() {
-        System.out.println(getLocalName() + ": started");
+       System.out.println(getLocalName() + ": started");
 
         // Lanzar GUI
         gui = new MainGUI(this.getLocalName(), this);
@@ -47,7 +47,7 @@ public class AcquisitionAgent extends Agent {
             @Override
             public void action() {
                 myAgent.doWait(); // Esperar señal desde GUI
-                //gui.getFrame().getArea().setText("");
+                gui.getFrame().getArea().setText("");
 
                 System.out.println(getLocalName() + ": Woken up by UI. Processing user input...");
 
@@ -103,12 +103,12 @@ public class AcquisitionAgent extends Agent {
 
                 ACLMessage reply = blockingReceive(MessageTemplate.MatchPerformative(ACLMessage.INFORM));
 
-                if (reply != null && reply.getPerformative() == ACLMessage.INFORM) {
+                if (reply != null) {
                     String content = reply.getContent();
                     System.out.println(getLocalName() + ": Received response:");
                     System.out.println(content);
 
-                    // gui.showResults(content); // Descomenta si quieres mostrar resultados en GUI
+                    gui.getFrame().getArea().setText(content);
 
                 } else {
                     block();
