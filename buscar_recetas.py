@@ -2,6 +2,7 @@
 import csv
 import json
 import sys
+import io
 
 def buscar_recetas(parametros_json, ruta_csv='dataprocessing/recipes_with_allergens.csv'):
     if isinstance(parametros_json, str):
@@ -9,9 +10,9 @@ def buscar_recetas(parametros_json, ruta_csv='dataprocessing/recipes_with_allerg
     else:
         parametros = parametros_json
 
-    ingredientes_requeridos = [i.lower() for i in parametros.get("ingredientes", [])]
+    ingredientes_requeridos = [i.lower() for i in parametros.get("ingredients", [])]
     min_rating = float(parametros.get("min_rating", 0))
-    max_prep_time = int(parametros.get("max_prep_time", 9999))
+    max_prep_time = int(parametros.get("max_total_time", 9999))
 
     recetas_resultado = []
 
@@ -37,7 +38,10 @@ def buscar_recetas(parametros_json, ruta_csv='dataprocessing/recipes_with_allerg
 
     return recetas_resultado
 
+
 if __name__ == '__main__':
+    sys.stdout = io.TextIOWrapper(sys.stdout.buffer, encoding='utf-8')
+
     parametros_json = sys.stdin.read()
     if not parametros_json:
         print("Falta el parámetro JSON")
