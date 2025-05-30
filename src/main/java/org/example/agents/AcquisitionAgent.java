@@ -16,6 +16,9 @@ import java.util.List;
 
 public class AcquisitionAgent extends Agent {
 
+    List<String> knownIngredients = List.of("apple cider vinegar", "onion", "garlic", "baking soda", "olive oil", "tomato", "carrot");
+    int levenshteinDistance = 2;
+
     MainGUI gui;
     public String ingredientsText;
     public File uploadedImage;
@@ -42,6 +45,7 @@ public class AcquisitionAgent extends Agent {
             @Override
             public void action() {
                 block(); // Esperar señal desde GUI
+                System.out.println(getLocalName() + ": Woken up by UI. Processing user input...");
 
                 addBehaviour(new OneShotBehaviour() {
                     @Override
@@ -49,6 +53,11 @@ public class AcquisitionAgent extends Agent {
                         System.out.println(getLocalName() + ": Woken up by UI. Processing user input...");
 
                         try {
+
+                            //extract ingredients from text
+                            IngredientExtractor extractor = new IngredientExtractor(knownIngredients, levenshteinDistance);
+                            ingredients = extractor.extractAndMatch(ingredientsText);
+
                             UserRecipePreferences prefs = new UserRecipePreferences();
                             prefs.ingredients = ingredients;
                             prefs.selectedAllergens = selectedAllergens;
