@@ -77,7 +77,7 @@ public class AcquisitionAgent extends Agent {
                 try {
 
                     //extract ingredients from text
-                    IngredientExtractor extractor = new IngredientExtractor(knownIngredients, levenshteinDistance);
+                    IngredientExtractor extractor = new IngredientExtractor(knownIngredients, levenshteinDistance, 3);
                     ingredients = extractor.extractAndMatch(ingredientsText);
 
                     UserRecipePreferences prefs = new UserRecipePreferences();
