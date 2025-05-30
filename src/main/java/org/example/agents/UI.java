@@ -3,6 +3,8 @@ package org.example.agents;
 import java.awt.*;
 import java.awt.event.ActionListener;
 import java.io.File;
+import java.util.ArrayList;
+import java.util.List;
 
 import javax.swing.*;
 import javax.swing.border.EmptyBorder;
@@ -12,8 +14,8 @@ public class UI extends JFrame {
     private static final long serialVersionUID = 1L;
     private JPanel contentPane;
     private AcquisitionAgent agent;
-	
-	public JTextField dietField;
+
+    public JTextField dietField;
     public JTextField amountField;
     public JTextField maxCaloriesField;
     public JTextField minRatingField;
@@ -21,6 +23,11 @@ public class UI extends JFrame {
     public JButton sendButton;
     private File uploadedImageFile;
     private JTextArea resultArea;
+    private JButton prevButton, nextButton;
+    private JLabel pageLabel;
+
+    private List<String> recipes;
+    private int currentRecipeIndex = 0;
 
     private JList<CheckableItem> allergenList;
 
@@ -28,30 +35,69 @@ public class UI extends JFrame {
             "Almonds", "Dairy", "Eggs", "Fish", "Nuts", "Oats", "Peanuts", "Shellfish", "Soybeans", "Wheat"
     };
 
+    public List<String> splitRecipes(String bigResult) {
+        List<String> recipes = new ArrayList<>();
+
+        String[] parts = bigResult.split("(?=Receta:)");
+
+        for (String part : parts) {
+            String trimmed = part.trim();
+            if (!trimmed.isEmpty()) {
+                recipes.add(trimmed);
+            }
+        }
+        return recipes;
+    }
+
+    private void showRecipe(int index) {
+        if (recipes == null || recipes.isEmpty()) {
+            resultArea.setText("No recipes found.");
+            prevButton.setEnabled(false);
+            nextButton.setEnabled(false);
+            pageLabel.setText("0/0");
+            return;
+        }
+
+        if (index >= 0 && index < recipes.size()) {
+            resultArea.setText(recipes.get(index));
+            currentRecipeIndex = index;
+            pageLabel.setText((index + 1) + "/" + recipes.size());
+
+            // Enable/disable navigation buttons
+            prevButton.setEnabled(index > 0);
+            nextButton.setEnabled(index < recipes.size() - 1);
+        }
+    }
+
+    public void setResults(String bigResultString) {
+        this.recipes = splitRecipes(bigResultString);
+        showRecipe(0); // Show first recipe by default
+    }
 
     /**
-	 * Launch the application.
-	 */
-	public static void main(String[] args) {
-		EventQueue.invokeLater(new Runnable() {
-			public void run() {
-				try {
-					UI frame = new UI();
-					frame.setVisible(true);
-				} catch (Exception e) {
-					e.printStackTrace();
-				}
-			}
-		});
-	}
+     * Launch the application.
+     */
+    public static void main(String[] args) {
+        EventQueue.invokeLater(new Runnable() {
+            public void run() {
+                try {
+                    UI frame = new UI();
+                    frame.setVisible(true);
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
+            }
+        });
+    }
 
-	public UI() {
-		
-	}
-	/**
-	 * Create the frame.
-	 */
-	public UI(AcquisitionAgent a) {
+    public UI() {
+
+    }
+
+    /**
+     * Create the frame.
+     */
+    public UI(AcquisitionAgent a) {
         this.agent = a;
         setTitle("Recipe Finder");
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
@@ -164,15 +210,37 @@ public class UI extends JFrame {
         resultLabel.setBounds(440, 50, 300, 25);
         contentPane.add(resultLabel);
 
-        resultArea = new JTextArea(30, 30);
+        resultArea = new JTextArea();
         resultArea.setFont(new Font("Comic Sans MS", Font.PLAIN, 14));
         resultArea.setLineWrap(true);
         resultArea.setWrapStyleWord(true);
         resultArea.setEditable(false);
         JScrollPane resultScroll = new JScrollPane(resultArea);
-        resultScroll.setBounds(440, 80, 420, 610);
+        resultScroll.setBounds(440, 80, 420, 530);  // Increased height to accommodate page navigation
         resultScroll.setVerticalScrollBarPolicy(JScrollPane.VERTICAL_SCROLLBAR_ALWAYS);
         contentPane.add(resultScroll);
+
+        // Navigation panel at bottom of results
+        JPanel navPanel = new JPanel(new FlowLayout(FlowLayout.CENTER, 10, 5));
+        navPanel.setBounds(440, 620, 420, 40);
+        navPanel.setBackground(new Color(95, 158, 160));
+
+        prevButton = new JButton("Previous");
+        prevButton.setFont(new Font("Comic Sans MS", Font.PLAIN, 14));
+        prevButton.setEnabled(false);
+
+        pageLabel = new JLabel("0/0");
+        pageLabel.setFont(new Font("Comic Sans MS", Font.PLAIN, 14));
+        pageLabel.setHorizontalAlignment(SwingConstants.CENTER);
+
+        nextButton = new JButton("Next");
+        nextButton.setFont(new Font("Comic Sans MS", Font.PLAIN, 14));
+        nextButton.setEnabled(false);
+
+        navPanel.add(prevButton);
+        navPanel.add(pageLabel);
+        navPanel.add(nextButton);
+        contentPane.add(navPanel);
 
         setContentPane(contentPane);
 
@@ -189,7 +257,7 @@ public class UI extends JFrame {
 
         sendButton.addActionListener(e -> {
             try {
-            // Obtener datos del formulario
+                // Obtener datos del formulario
                 String ingredientsText = ingredientsArea.getText();
                 int amount = Integer.parseInt(amountField.getText());
                 int maxCalories = Integer.parseInt(maxCaloriesField.getText());
@@ -228,7 +296,15 @@ public class UI extends JFrame {
                 JOptionPane.showMessageDialog(this, "Error al enviar datos al agente.", "Error", JOptionPane.ERROR_MESSAGE);
             }
         });
-	}
+
+        prevButton.addActionListener(e -> {
+            showRecipe(currentRecipeIndex - 1);
+        });
+
+        nextButton.addActionListener(e -> {
+            showRecipe(currentRecipeIndex + 1);
+        });
+    }
 
     public JTextArea getArea() {
         return resultArea;
@@ -283,6 +359,4 @@ public class UI extends JFrame {
             return this;
         }
     }
-
-
 }
