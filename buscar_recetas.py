@@ -3,7 +3,7 @@ import csv
 import json
 import sys
 
-def buscar_recetas(parametros_json, ruta_csv='recipes.csv'):
+def buscar_recetas(parametros_json, ruta_csv='dataprocessing/recipes_with_allergens.csv'):
     if isinstance(parametros_json, str):
         parametros = json.loads(parametros_json)
     else:
@@ -38,11 +38,11 @@ def buscar_recetas(parametros_json, ruta_csv='recipes.csv'):
     return recetas_resultado
 
 if __name__ == '__main__':
-    if len(sys.argv) < 2:
+    parametros_json = sys.stdin.read()
+    if not parametros_json:
         print("Falta el parámetro JSON")
         sys.exit(1)
 
-    parametros_json = sys.argv[1]
     recetas = buscar_recetas(parametros_json)
 
     for r in recetas:
