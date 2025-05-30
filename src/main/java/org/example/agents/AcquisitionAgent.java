@@ -14,11 +14,35 @@ import jade.lang.acl.ACLMessage;
 import jade.domain.FIPAException;
 
 import java.io.File;
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Paths;
 import java.util.List;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 public class AcquisitionAgent extends Agent {
 
-    List<String> knownIngredients = List.of("apple cider vinegar", "onion", "garlic", "baking soda", "olive oil", "tomato", "carrot");
+    public static List<String> loadIngredientsFromCsv(String path) throws IOException {
+        try (Stream<String> lines = Files.lines(Paths.get(path))) {
+            return lines.skip(1)
+                    .map(line -> line.split(",")[1])
+                    .map(String::toLowerCase)
+                    .map(s -> s.trim())
+                    .collect(Collectors.toList());
+        }
+    }
+
+    List<String> knownIngredients;
+
+    {
+        try {
+            knownIngredients = loadIngredientsFromCsv("dataprocessing/all_ingredients.csv");
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
     int levenshteinDistance = 2;
 
     MainGUI gui;
