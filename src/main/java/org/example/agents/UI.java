@@ -64,6 +64,8 @@ public class UI extends JFrame {
 
         if (index >= 0 && index < recipes.size()) {
             resultArea.setText(recipes.get(index));
+            resultArea.setCaretPosition(0);
+
             currentRecipeIndex = index;
             pageLabel.setText((index + 1) + "/" + recipes.size());
 
