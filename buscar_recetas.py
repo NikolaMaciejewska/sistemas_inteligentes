@@ -33,6 +33,7 @@ def buscar_recetas(parametros_json, ruta_csv='dataprocessing/recipes_with_allerg
     max_prep_time = int(parametros.get("max_total_time", 9999))
     max_calories = int(parametros.get("max_calories", 9999))
     num_recipes = int(parametros.get("number_of_recipes", 5))
+    selected_allergens = [i for i in parametros.get("selectedAllergens", [])]
 
     recetas_resultado = []
 
@@ -43,6 +44,7 @@ def buscar_recetas(parametros_json, ruta_csv='dataprocessing/recipes_with_allerg
             rating = float(row['rating']) if row['rating'] else 0.0
             nutrition = row.get('nutrition', '')
             directions = row.get('directions', 'No directions available.')
+            allergens = row['allergens'] if row['allergens'] else ""
 
             try:
                 prep_time = int(''.join(filter(str.isdigit, row['prep_time'])))
@@ -51,7 +53,7 @@ def buscar_recetas(parametros_json, ruta_csv='dataprocessing/recipes_with_allerg
 
             calories = extraer_calorias(nutrition)
 
-            if all(ing in ingredientes for ing in ingredientes_requeridos):
+            if (all(ing in ingredientes for ing in ingredientes_requeridos) and not any(alg in allergens for alg in selected_allergens)):
                 if rating >= min_rating and prep_time <= max_prep_time and calories <= max_calories:
                     recetas_resultado.append({
                         "recipe_name": row['recipe_name'],
@@ -59,7 +61,8 @@ def buscar_recetas(parametros_json, ruta_csv='dataprocessing/recipes_with_allerg
                         "ingredients": row['ingredients'],
                         "rating": row['rating'],
                         "calories": calories,
-                        "directions": directions
+                        "directions": directions,
+                        "allergens": row["allergens"]
                     })
 
     # Limit to number_of_recipes
@@ -73,10 +76,17 @@ if __name__ == '__main__':
 
     recetas = buscar_recetas(parametros_json)
 
+    if not recetas:
+        print("No se encontraron recetas que coincidan con tus criterios.")
+        print("Prueba con diferentes opciones!")
+        sys.exit(0)  # Salida exitosa pero sin resultados
+
     for r in recetas:
-        print(f"\nReceta: {r['recipe_name']}")
-        print(f"Ingredientes: {r['ingredients']}")
+        print(f"\nRECIPE: {r['recipe_name']}")
+        print(f"Ingredients: {r['ingredients']}")
         print(f"Rating: {r['rating']}")
         print(f"Prep Time: {r['prep_time']}")
         print(f"Calories: {r['calories']}")
+        print(f"Allergens: {r['allergens']}")
         print(f"Directions:\n{r['directions']}")
+        
