@@ -38,6 +38,7 @@ public class AcquisitionAgent extends Agent {
     {
         try {
             knownIngredients = loadIngredientsFromCsv("dataprocessing/all_ingredients.csv");
+            System.out.println(knownIngredients);
         } catch (IOException e) {
             throw new RuntimeException(e);
         }

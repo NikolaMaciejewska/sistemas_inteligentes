@@ -71,6 +71,7 @@ public class IngredientExtractor {
             if (bestMatch != null) {
                 matched.add(bestMatch);
             }
+            System.out.printf("Candidate: %-30s BestMatch: %-30s Score: %d\n", normCandidate, bestMatch, bestScore);
         }
 
         return matched;
@@ -79,6 +80,7 @@ public class IngredientExtractor {
     // 4. Full pipeline: from raw text → matched ingredients
     public List<String> extractAndMatch(String rawText) {
         List<String> phrases = extractNounPhrases(rawText);
+        System.out.println("PHRASES: " + phrases);
         return matchToKnownIngredients(phrases);
     }
 
