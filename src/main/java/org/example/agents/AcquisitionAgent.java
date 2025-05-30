@@ -48,62 +48,55 @@ public class AcquisitionAgent extends Agent {
                 block(); // Esperar señal desde GUI
                 System.out.println(getLocalName() + ": Woken up by UI. Processing user input...");
 
-                addBehaviour(new OneShotBehaviour() {
-                    @Override
-                    public void action() {
-                        System.out.println(getLocalName() + ": Woken up by UI. Processing user input...");
+                try {
 
-                        try {
+                    //extract ingredients from text
+                    IngredientExtractor extractor = new IngredientExtractor(knownIngredients, levenshteinDistance);
+                    ingredients = extractor.extractAndMatch(ingredientsText);
 
-                            //extract ingredients from text
-                            IngredientExtractor extractor = new IngredientExtractor(knownIngredients, levenshteinDistance);
-                            ingredients = extractor.extractAndMatch(ingredientsText);
+                    UserRecipePreferences prefs = new UserRecipePreferences();
+                    prefs.setIngredients(ingredients);
+                    prefs.setSelectedAllergens(selectedAllergens);
+                    prefs.setNumber_of_recipes(amount);
+                    prefs.setMax_calories(maxCalories);
+                    prefs.setMin_rating(minRating);
+                    prefs.setMax_total_time(maxTotalTime);
+                    prefs.setVegan(vegan);
+                    prefs.setVegetarian(vegetarian);
 
-                            UserRecipePreferences prefs = new UserRecipePreferences();
-                            prefs.setIngredients(ingredients);
-                            prefs.setSelectedAllergens(selectedAllergens);
-                            prefs.setNumber_of_recipes(amount);
-                            prefs.setMax_calories(maxCalories);
-                            prefs.setMin_rating(minRating);
-                            prefs.setMax_total_time(maxTotalTime);
-                            prefs.setVegan(vegan);
-                            prefs.setVegetarian(vegetarian);
+                    ObjectMapper mapper = new ObjectMapper();
+                    String json = mapper.writeValueAsString(prefs);
+                    System.out.println("Generated JSON:\n" + json);
 
-                            ObjectMapper mapper = new ObjectMapper();
-                            String json = mapper.writeValueAsString(prefs);
-                            System.out.println("Generated JSON:\n" + json);
+                    DFAgentDescription template = new DFAgentDescription();
+                    ServiceDescription sd = new ServiceDescription();
+                    sd.setType("recipe-classification");
+                    template.addServices(sd);
 
-                            DFAgentDescription template = new DFAgentDescription();
-                            ServiceDescription sd = new ServiceDescription();
-                            sd.setType("recipe-classification");
-                            template.addServices(sd);
+                    DFAgentDescription[] result = DFService.search(myAgent, template);
 
-                            DFAgentDescription[] result = DFService.search(myAgent, template);
+                    if (result.length > 0) {
+                        AID recipient = result[0].getName();
 
-                            if (result.length > 0) {
-                                AID recipient = result[0].getName();
+                        ACLMessage msg = new ACLMessage(ACLMessage.REQUEST);
+                        msg.addReceiver(recipient);
+                        msg.setLanguage("JSON");
+                        msg.setContent(json);
 
-                                ACLMessage msg = new ACLMessage(ACLMessage.REQUEST);
-                                msg.addReceiver(recipient);
-                                msg.setLanguage("JSON");
-                                msg.setContent(json);
+                        send(msg);
+                        System.out.println("Message sent to " + recipient.getLocalName());
 
-                                send(msg);
-                                System.out.println("Message sent to " + recipient.getLocalName());
-
-                            } else {
-                                System.err.println("No agent found offering 'Clasificacion de recetas'");
-                            }
-
-                        } catch (FIPAException fe) {
-                            System.err.println("Error searching DF: " + fe.getMessage());
-                            fe.printStackTrace();
-                        } catch (Exception e) {
-                            System.err.println("Error processing user input or sending data: " + e.getMessage());
-                            e.printStackTrace();
-                        }
+                    } else {
+                        System.err.println("No agent found offering 'Clasificacion de recetas'");
                     }
-                });
+
+                } catch (FIPAException fe) {
+                    System.err.println("Error searching DF: " + fe.getMessage());
+                    fe.printStackTrace();
+                } catch (Exception e) {
+                    System.err.println("Error processing user input or sending data: " + e.getMessage());
+                    e.printStackTrace();
+                }
             }
         });
 
