@@ -1,5 +1,6 @@
 package org.example.agents;
 
+import jade.lang.acl.MessageTemplate;
 import org.example.models.UserRecipePreferences;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import jade.core.AID;
@@ -45,7 +46,9 @@ public class AcquisitionAgent extends Agent {
         addBehaviour(new CyclicBehaviour() {
             @Override
             public void action() {
-                block(); // Esperar señal desde GUI
+                myAgent.doWait(); // Esperar señal desde GUI
+                //gui.getFrame().getArea().setText("");
+
                 System.out.println(getLocalName() + ": Woken up by UI. Processing user input...");
 
                 try {
@@ -97,14 +100,8 @@ public class AcquisitionAgent extends Agent {
                     System.err.println("Error processing user input or sending data: " + e.getMessage());
                     e.printStackTrace();
                 }
-            }
-        });
 
-        // Comportamiento para recibir respuestas
-        addBehaviour(new CyclicBehaviour() {
-            @Override
-            public void action() {
-                ACLMessage reply = receive();
+                ACLMessage reply = blockingReceive(MessageTemplate.MatchPerformative(ACLMessage.INFORM));
 
                 if (reply != null && reply.getPerformative() == ACLMessage.INFORM) {
                     String content = reply.getContent();

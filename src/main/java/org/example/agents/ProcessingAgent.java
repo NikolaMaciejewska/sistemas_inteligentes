@@ -44,7 +44,7 @@ public class ProcessingAgent extends Agent {
         addBehaviour(new CyclicBehaviour() {
             @Override
             public void action() {
-                ACLMessage msg = receive();
+                ACLMessage msg = blockingReceive(MessageTemplate.MatchPerformative(ACLMessage.REQUEST));
                 if (msg != null) {
                     System.out.println(getLocalName() + ": Received message");
 
