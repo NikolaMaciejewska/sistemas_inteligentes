@@ -32,22 +32,26 @@ public class UI extends JFrame {
     private JList<CheckableItem> allergenList;
 
     private static final String[] COMMON_ALLERGENS = {
-            "Almonds", "Dairy", "Eggs", "Fish", "Nuts", "Oats", "Peanuts", "Shellfish", "Soybeans", "Wheat"
+            "Almonds", "Dairy", "Eggs", "Fish", "Milk", "Nuts", "Oats", "Peanuts", "Shellfish", "Soybeans", "Wheat"
     };
 
     public List<String> splitRecipes(String bigResult) {
         List<String> recipes = new ArrayList<>();
 
-        String[] parts = bigResult.split("(?=Receta:)");
+        String[] parts = bigResult.split("(?m)^RECIPE n°");
 
         for (String part : parts) {
             String trimmed = part.trim();
             if (!trimmed.isEmpty()) {
+                if (!trimmed.startsWith("RECIPE n°")) {
+                    trimmed = "RECIPE n°" + trimmed;
+                }
                 recipes.add(trimmed);
             }
         }
         return recipes;
     }
+
 
     private void showRecipe(int index) {
         if (recipes == null || recipes.isEmpty()) {
@@ -71,8 +75,9 @@ public class UI extends JFrame {
 
     public void setResults(String bigResultString) {
         this.recipes = splitRecipes(bigResultString);
-        showRecipe(0); // Show first recipe by default
+        showRecipe(0);
     }
+
 
     /**
      * Launch the application.
@@ -216,7 +221,7 @@ public class UI extends JFrame {
         resultArea.setWrapStyleWord(true);
         resultArea.setEditable(false);
         JScrollPane resultScroll = new JScrollPane(resultArea);
-        resultScroll.setBounds(440, 80, 420, 530);  // Increased height to accommodate page navigation
+        resultScroll.setBounds(440, 80, 420, 530);
         resultScroll.setVerticalScrollBarPolicy(JScrollPane.VERTICAL_SCROLLBAR_ALWAYS);
         contentPane.add(resultScroll);
 

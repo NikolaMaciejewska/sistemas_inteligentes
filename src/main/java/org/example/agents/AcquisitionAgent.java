@@ -131,7 +131,7 @@ public class AcquisitionAgent extends Agent {
                     System.out.println(getLocalName() + ": Received response:");
                     System.out.println(content);
 
-                    gui.getFrame().getArea().setText(content);
+                    gui.getFrame().setResults(content);
 
                 } else {
                     block();
