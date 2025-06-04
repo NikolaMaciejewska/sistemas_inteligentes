@@ -17,6 +17,7 @@ import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Paths;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -76,9 +77,20 @@ public class AcquisitionAgent extends Agent {
 
                 try {
 
-                    //extract ingredients from text
+                    ///extract ingredients from text
                     IngredientExtractor extractor = new IngredientExtractor(knownIngredients, levenshteinDistance, 3);
-                    ingredients = extractor.extractAndMatch(ingredientsText);
+                    if (ingredientsText != null && !ingredientsText.isBlank()) {
+                        ingredients = extractor.extractAndMatch(ingredientsText);
+                    } else {
+                        ingredients = new ArrayList<>();
+                    }
+                    List<String> ingredientsFromImage = null;
+                    if (uploadedImage != null && uploadedImage.exists()) {
+                        ingredientsFromImage = extractor.extractAndMatchFromImage(uploadedImage);
+                    }
+                    if (ingredientsFromImage != null && !ingredientsFromImage.isEmpty()) {
+                        ingredients.addAll(ingredientsFromImage);
+                    }
 
                     UserRecipePreferences prefs = new UserRecipePreferences();
                     prefs.setIngredients(ingredients);

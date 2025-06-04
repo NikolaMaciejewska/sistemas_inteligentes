@@ -253,11 +253,14 @@ if __name__ == '__main__':
         sys.exit(1)
     else:
         json_recipes = main(parametros_json)
-        for r in json_recipes:
-            print(f"\nRECIPE n°{r}: {json_recipes[r]['recipe_name']}")
-            print(f"- Ingredients: {json_recipes[r]['ingredients']}")
-            print(f"- Rating: {json_recipes[r]['rating']}")
-            print(f"- Prep Time: {json_recipes[r]['prep_time']}")
-            print(f"- Calories: {json_recipes[r]['calories']}")
-            print(f"- Allergens: {json_recipes[r]['allergens']}")
-            print(f"- Directions:\n{json_recipes[r]['directions']}")
+        if type(json_recipes) = str:
+            print(json_recipes)
+        else:
+            for r in json_recipes:
+                print(f"\nRECIPE n°{r}: {json_recipes[r]['recipe_name']}")
+                print(f"- Ingredients: {json_recipes[r]['ingredients']}")
+                print(f"- Rating: {json_recipes[r]['rating']}")
+                print(f"- Prep Time: {json_recipes[r]['prep_time']}")
+                print(f"- Calories: {json_recipes[r]['calories']}")
+                print(f"- Allergens: {json_recipes[r]['allergens']}")
+                print(f"- Directions:\n{json_recipes[r]['directions']}")

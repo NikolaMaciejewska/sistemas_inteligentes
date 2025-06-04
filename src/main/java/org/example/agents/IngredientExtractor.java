@@ -8,6 +8,8 @@ import edu.stanford.nlp.trees.TreeCoreAnnotations;
 import edu.stanford.nlp.util.CoreMap;
 import org.apache.commons.text.similarity.LevenshteinDistance;
 
+import java.io.File;
+import java.io.IOException;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -30,14 +32,14 @@ public class IngredientExtractor {
     }
 
     /**
-     * Extract noun phrases (NP) and single noun lemmas from text as candidates
+     * Extract noun phrases and noun lemmas from input text
      */
     private List<String> extractCandidates(String text) {
         List<String> candidates = new ArrayList<>();
         Annotation doc = new Annotation(text);
         pipeline.annotate(doc);
 
-        // Extract noun phrases (NP)
+        // Extract noun phrases
         for (CoreMap sentence : doc.get(CoreAnnotations.SentencesAnnotation.class)) {
             Tree tree = sentence.get(TreeCoreAnnotations.TreeAnnotation.class);
             for (Tree subtree : tree) {
@@ -50,7 +52,7 @@ public class IngredientExtractor {
             }
         }
 
-        // Also extract single noun lemmas to catch single-word ingredients
+        // Add single noun lemmas
         for (CoreMap sentence : doc.get(CoreAnnotations.SentencesAnnotation.class)) {
             for (CoreLabel token : sentence.get(CoreAnnotations.TokensAnnotation.class)) {
                 String pos = token.get(CoreAnnotations.PartOfSpeechAnnotation.class);
@@ -61,7 +63,6 @@ public class IngredientExtractor {
             }
         }
 
-        // Normalize and filter out very short candidates (like "a", "an", "in")
         return candidates.stream()
                 .map(this::normalize)
                 .filter(s -> s.length() >= minCandidateLength)
@@ -69,29 +70,20 @@ public class IngredientExtractor {
                 .collect(Collectors.toList());
     }
 
-    // Normalize string (remove special chars, lowercase)
     public String normalize(String s) {
         return s.toLowerCase().replaceAll("[^a-z ]", "").replaceAll("\\s+", " ").trim();
     }
 
-    // Fuzzy match to known ingredients using Levenshtein with maxDistance threshold
     public List<String> matchToKnownIngredients(List<String> candidates) {
         LevenshteinDistance distanceCalc = new LevenshteinDistance();
         List<String> matchedIngredients = new ArrayList<>();
         List<String> matchedCandidates = new ArrayList<>();
 
-        // Sort candidates by length descending to prioritize multi-word ingredients
+        // Sort long phrases first
         candidates.sort((a, b) -> Integer.compare(b.length(), a.length()));
 
         for (String candidate : candidates) {
-            // Skip if candidate is substring of any previously matched candidate
-            boolean isSubCandidate = false;
-            for (String matchedCandidate : matchedCandidates) {
-                if (matchedCandidate.contains(candidate)) {
-                    isSubCandidate = true;
-                    break;
-                }
-            }
+            boolean isSubCandidate = matchedCandidates.stream().anyMatch(m -> m.contains(candidate));
             if (isSubCandidate) continue;
 
             String bestMatch = null;
@@ -113,7 +105,6 @@ public class IngredientExtractor {
             System.out.printf("Candidate: %-30s BestMatch: %-30s Score: %d\n", candidate, bestMatch, bestScore);
         }
 
-        // Remove duplicates but keep order
         return matchedIngredients.stream().distinct().collect(Collectors.toList());
     }
 
@@ -122,15 +113,19 @@ public class IngredientExtractor {
         return matchToKnownIngredients(candidates);
     }
 
-    public static void main(String[] args) {
-        List<String> knownIngredients = List.of(
-                "apple cider vinegar", "onion", "garlic", "baking soda", "olive oil", "tomato", "carrot"
-        );
-        String input = "Add 2 tbsp of apple cider viniger and chopped onins to the pan.";
+    /**
+     * Extract and match ingredients from an image
+     */
+    public List<String> extractAndMatchFromImage(File imageFile) throws IOException {
+        ImageObjectExtractor imageExtractor = new ImageObjectExtractor();
+        List<String> labels = imageExtractor.extractLabels(imageFile);
 
-        IngredientExtractor processor = new IngredientExtractor(knownIngredients, 2, 3);  // min length 3 chars to avoid "have"
-        List<String> matchedIngredients = processor.extractAndMatch(input);
+        // Normalize and filter
+        List<String> candidates = labels.stream()
+                .map(this::normalize)
+                .filter(s -> s.length() >= minCandidateLength)
+                .collect(Collectors.toList());
 
-        System.out.println("Matched Ingredients: " + matchedIngredients);
+        return matchToKnownIngredients(candidates);
     }
 }
